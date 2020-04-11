@@ -189,9 +189,14 @@ let
           mkdir /boot/grub
           echo '(hd0) /dev/vda' > /boot/grub/device.map
 
-          # Install GRUB and generate the GRUB boot menu.
+          # Install bootloader
           touch /etc/NIXOS
           mkdir -p /nix/var/nix/profiles
+          ln -s ${config.system.build.toplevel} /nix/var/nix/profiles/system-1-link
+          ln -s /nix/var/nix/profiles/system-1-link /nix/var/nix/profiles/system
+          export NIXOS_INSTALL_BOOTLOADER=1
+          export SYSTEMD_RELAX_ESP_CHECKS=1
+
           ${config.system.build.toplevel}/bin/switch-to-configuration boot
 
           umount /boot
