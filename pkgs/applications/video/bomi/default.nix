@@ -1,5 +1,6 @@
-{ stdenv, fetchFromGitHub, fetchpatch, pkgconfig, perl, python, which
-, libX11, libxcb, libGLU_combined
+{ config, stdenv, fetchFromGitHub
+, fetchpatch, pkgconfig, perl, python, which
+, libX11, libxcb, libGLU, libGL
 , qtbase, qtdeclarative, qtquickcontrols, qttools, qtx11extras, qmake, makeWrapper
 , libchardet
 , ffmpeg
@@ -15,7 +16,7 @@
 , libbluray
 , jackSupport ? false, jack ? null
 , portaudioSupport ? false, portaudio ? null
-, pulseSupport ? true, libpulseaudio ? null
+, pulseSupport ? config.pulseaudio or stdenv.isLinux, libpulseaudio ? null
 , cddaSupport ? false, libcdda ? null
 , youtubeSupport ? true, youtube-dl ? null
 }:
@@ -29,7 +30,7 @@ assert cddaSupport -> libcdda != null;
 assert youtubeSupport -> youtube-dl != null;
 
 stdenv.mkDerivation rec {
-  name = "bomi-${version}";
+  pname = "bomi";
   version = "0.9.11";
 
   src = fetchFromGitHub {
@@ -55,7 +56,7 @@ stdenv.mkDerivation rec {
   buildInputs = with stdenv.lib;
                 [ libX11
                   libxcb
-                  libGLU_combined
+                  libGLU libGL
                   qtbase
                   qtx11extras
                   qtdeclarative
@@ -108,7 +109,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Powerful and easy-to-use multimedia player";
-    homepage = https://bomi-player.github.io/;
+    homepage = "https://bomi-player.github.io/";
     license = licenses.gpl2Plus;
     maintainers = [ maintainers.abbradar ];
     platforms = platforms.linux;

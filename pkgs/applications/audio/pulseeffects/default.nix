@@ -31,13 +31,14 @@
 , zam-plugins
 , rubberband
 , mda_lv2
-, hicolor-icon-theme
+, lsp-plugins
 }:
 
 let
   lv2Plugins = [
     calf # limiter, compressor exciter, bass enhancer and others
     mda_lv2 # loudness
+    lsp-plugins # delay
   ];
   ladspaPlugins = [
     rubberband # pitch shifting
@@ -45,13 +46,13 @@ let
   ];
 in stdenv.mkDerivation rec {
   pname = "pulseeffects";
-  version = "4.4.6";
+  version = "4.7.2";
 
   src = fetchFromGitHub {
     owner = "wwmm";
     repo = "pulseeffects";
     rev = "v${version}";
-    sha256 = "0zvcj2qliz2rlcz59ag4ljrs78qb7kpyaph16qvi07ij7c5bm333";
+    sha256 = "1yga25da5bpg12zkikp6dn4wqhn9f7r10awvjzfcz8s6w9xlz6rx";
   };
 
   nativeBuildInputs = [
@@ -72,8 +73,8 @@ in stdenv.mkDerivation rec {
     gtk3
     gtkmm3
     gst_all_1.gstreamer
-    gst_all_1.gst-plugins-base
-    gst_all_1.gst-plugins-good
+    gst_all_1.gst-plugins-base # gst-fft
+    gst_all_1.gst-plugins-good # pulsesrc
     gst_all_1.gst-plugins-bad
     lilv lv2 serd sord sratom
     libbs2b
@@ -84,7 +85,6 @@ in stdenv.mkDerivation rec {
     dbus
     fftwFloat
     zita-convolver
-    hicolor-icon-theme
   ];
 
   postPatch = ''
@@ -101,9 +101,10 @@ in stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Limiter, compressor, reverberation, equalizer and auto volume effects for Pulseaudio applications";
-    homepage = https://github.com/wwmm/pulseeffects;
+    homepage = "https://github.com/wwmm/pulseeffects";
     license = licenses.gpl3;
     maintainers = with maintainers; [ jtojnar ];
     platforms = platforms.linux;
+    badPlatforms = [ "aarch64-linux" ];
   };
 }

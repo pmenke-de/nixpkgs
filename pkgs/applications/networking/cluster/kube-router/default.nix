@@ -1,17 +1,16 @@
-{ stdenv, buildGoPackage, fetchFromGitHub }:
+{ lib, buildGoPackage, fetchFromGitHub }:
 
 buildGoPackage rec {
-  name = "kube-router-${version}";
-  version = "0.2.3";
-  rev = "v${version}";
+  pname = "kube-router";
+  version = "0.3.1";
 
   goPackagePath = "github.com/cloudnativelabs/kube-router";
 
   src = fetchFromGitHub {
-    inherit rev;
     owner = "cloudnativelabs";
-    repo = "kube-router";
-    sha256 = "1dsr76dq6sycwgh75glrcb4scv52lrrd0aivskhc7mwq30plafcj";
+    repo = pname;
+    rev = "v${version}";
+    sha256 = "06azrghcxp6n4bvrqxpwhmg60qk4jqcrkl1lh1rardlzhl71lk1h";
   };
 
   buildFlagsArray = ''
@@ -22,7 +21,7 @@ buildGoPackage rec {
     ${goPackagePath}/pkg/cmd.buildDate=Nix
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     homepage = "https://www.kube-router.io/";
     description = "All-in-one router, firewall and service proxy for Kubernetes";
     license = licenses.asl20;

@@ -1,8 +1,8 @@
-{ stdenv, buildPythonApplication, fetchPypi
+{ stdenv, buildPythonPackage, fetchPypi
 , mock, pytest
 , six
 }:
-buildPythonApplication rec {
+buildPythonPackage rec {
   pname = "PyHamcrest";
   version = "1.9.0";
 
@@ -17,7 +17,7 @@ buildPythonApplication rec {
   doCheck = false;  # pypi tarball does not include tests
 
   meta = with stdenv.lib; {
-    homepage = https://github.com/hamcrest/PyHamcrest;
+    homepage = "https://github.com/hamcrest/PyHamcrest";
     description = "Hamcrest framework for matcher objects";
     license = licenses.bsd3;
     maintainers = with maintainers; [

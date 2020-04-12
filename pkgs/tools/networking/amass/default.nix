@@ -1,33 +1,33 @@
-{ buildGoPackage
+{ buildGoModule
 , fetchFromGitHub
-, fetchpatch
-, lib
+, stdenv
+, Security
 }:
 
-buildGoPackage rec {
-  name = "amass-${version}";
-  version = "2.8.5";
-
-  goPackagePath = "github.com/OWASP/Amass";
+buildGoModule rec {
+  pname = "amass";
+  version = "3.5.4";
 
   src = fetchFromGitHub {
     owner = "OWASP";
     repo = "Amass";
-    rev = version;
-    sha256 = "1nsqg1p7hcv369d53n13xps3ks6fgzkkp6v9q87l04yj32nbr5qy";
+    rev = "v${version}";
+    sha256 = "0sxcyrlgqajmlsicr4j2b8hq2fzw8ai1xsq176bz0f33q9m9wvhf";
   };
 
-  outputs = [ "bin" "out" "wordlists" ];
+  modSha256 = "1yjvwkm2zaf017lai5xl088x1z1ifwsbw56dagyf8z9jk9lhkcj7";
 
-  goDeps = ./deps.nix;
+  outputs = [ "out" "wordlists" ];
+
+  buildInputs = stdenv.lib.optionals stdenv.isDarwin [ Security ];
 
   postInstall = ''
     mkdir -p $wordlists
-    cp -R $src/wordlists/*.txt $wordlists
+    cp -R $src/examples/wordlists/*.txt $wordlists
     gzip $wordlists/*.txt
   '';
 
-  meta = with lib; {
+  meta = with stdenv.lib; {
     description = "In-Depth DNS Enumeration and Network Mapping";
     longDescription = ''
       The OWASP Amass tool suite obtains subdomain names by scraping data
@@ -40,9 +40,8 @@ buildGoPackage rec {
       Amass ships with a set of wordlist (to be used with the amass -w flag)
       that are found under the wordlists output.
       '';
-    homepage = https://www.owasp.org/index.php/OWASP_Amass_Project;
+    homepage = "https://www.owasp.org/index.php/OWASP_Amass_Project";
     license = licenses.asl20;
     maintainers = with maintainers; [ kalbasit ];
-    platforms = platforms.linux ++ platforms.darwin;
   };
 }

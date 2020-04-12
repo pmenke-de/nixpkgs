@@ -27,7 +27,7 @@ let
   };
 
 in stdenv.mkDerivation rec {
-  name = "dfasma-${version}";
+  pname = "dfasma";
   version = "1.4.5";
 
   src = fetchFromGitHub {
@@ -59,7 +59,7 @@ in stdenv.mkDerivation rec {
       there are basic functionalities to align the signals in time and
       amplitude, this software does not aim to be an audio editor.
     '';
-    homepage = http://gillesdegottex.github.io/dfasma/;
+    homepage = "http://gillesdegottex.github.io/dfasma/";
     license = [ licenses.gpl3Plus reaperFork.meta.license ];
     platforms = platforms.linux;
   };

@@ -2,18 +2,17 @@
 
 stdenv.mkDerivation rec {
   pname = "cppcheck";
-  version = "1.86";
-  name = "${pname}-${version}";
+  version = "1.90";
 
   src = fetchurl {
-    url = "mirror://sourceforge/${pname}/${name}.tar.bz2";
-    sha256 = "0p4zdyc6l7x5611bybv7gwjdz1dvakb60xf0ya3dhvf9272iszf3";
+    url = "mirror://sourceforge/${pname}/${pname}-${version}.tar.bz2";
+    sha256 = "10qqyvx44llbchwqjyipra0nzqqkb9majpp582ac55imc5b8sxa3";
   };
 
   buildInputs = [ pcre ];
   nativeBuildInputs = [ libxslt docbook_xsl docbook_xml_dtd_45 ];
 
-  makeFlags = ''PREFIX=$(out) CFGDIR=$(out)/cfg HAVE_RULES=yes'';
+  makeFlags = [ "PREFIX=$(out)" "FILESDIR=$(out)/cfg" "HAVE_RULES=yes" ];
 
   outputs = [ "out" "man" ];
 
@@ -31,7 +30,7 @@ stdenv.mkDerivation rec {
       Check C/C++ code for memory leaks, mismatching allocation-deallocation,
       buffer overruns and more.
     '';
-    homepage = http://cppcheck.sourceforge.net/;
+    homepage = "http://cppcheck.sourceforge.net/";
     license = licenses.gpl3Plus;
     platforms = platforms.unix;
     maintainers = with maintainers; [ joachifm ];

@@ -18,7 +18,7 @@ let
     in checkedConfig yml;
 
   cmdlineArgs = cfg.extraFlags ++ [
-    "--config.file ${alertmanagerYml}"
+    "--config.file /tmp/alert-manager-substituted.yaml"
     "--web.listen-address ${cfg.listenAddress}:${toString cfg.port}"
     "--log.level ${cfg.logLevel}"
     ] ++ (optional (cfg.webExternalUrl != null)
@@ -27,6 +27,15 @@ let
       "--log.format ${cfg.logFormat}"
   );
 in {
+  imports = [
+    (mkRemovedOptionModule [ "services" "prometheus" "alertmanager" "user" ] "The alertmanager service is now using systemd's DynamicUser mechanism which obviates a user setting.")
+    (mkRemovedOptionModule [ "services" "prometheus" "alertmanager" "group" ] "The alertmanager service is now using systemd's DynamicUser mechanism which obviates a group setting.")
+    (mkRemovedOptionModule [ "services" "prometheus" "alertmanagerURL" ] ''
+      Due to incompatibility, the alertmanagerURL option has been removed,
+      please use 'services.prometheus2.alertmanagers' instead.
+    '')
+  ];
+
   options = {
     services.prometheus.alertmanager = {
       enable = mkEnableOption "Prometheus Alertmanager";
@@ -37,22 +46,6 @@ in {
         defaultText = "pkgs.alertmanager";
         description = ''
           Package that should be used for alertmanager.
-        '';
-      };
-
-      user = mkOption {
-        type = types.str;
-        default = "nobody";
-        description = ''
-          User name under which Alertmanager shall be run.
-        '';
-      };
-
-      group = mkOption {
-        type = types.str;
-        default = "nogroup";
-        description = ''
-          Group under which Alertmanager shall be run.
         '';
       };
 
@@ -106,7 +99,8 @@ in {
         type = types.str;
         default = "";
         description = ''
-          Address to listen on for the web interface and API.
+          Address to listen on for the web interface and API. Empty string will listen on all interfaces.
+          "localhost" will listen on 127.0.0.1 (but not ::1).
         '';
       };
 
@@ -133,6 +127,18 @@ in {
           Extra commandline options when launching the Alertmanager.
         '';
       };
+
+      environmentFile = mkOption {
+        type = types.nullOr types.path;
+        default = null;
+        example = "/root/alertmanager.env";
+        description = ''
+          File to load as environment file. Environment variables
+          from this file will be interpolated into the config file
+          using envsubst with this syntax:
+          <literal>$ENVIRONMENT ''${VARIABLE}</literal>
+        '';
+      };
     };
   };
 
@@ -149,18 +155,19 @@ in {
 
       systemd.services.alertmanager = {
         wantedBy = [ "multi-user.target" ];
-        after    = [ "network.target" ];
-        script = ''
-          ${cfg.package}/bin/alertmanager \
-            ${concatStringsSep " \\\n  " cmdlineArgs}
+        after    = [ "network-online.target" ];
+        preStart = ''
+           ${lib.getBin pkgs.envsubst}/bin/envsubst -o "/tmp/alert-manager-substituted.yaml" \
+                                                    -i "${alertmanagerYml}"
         '';
-
         serviceConfig = {
-          User = cfg.user;
-          Group = cfg.group;
           Restart  = "always";
-          PrivateTmp = true;
+          DynamicUser = true; # implies PrivateTmp
+          EnvironmentFile = lib.mkIf (cfg.environmentFile != null) cfg.environmentFile;
           WorkingDirectory = "/tmp";
+          ExecStart = "${cfg.package}/bin/alertmanager" +
+            optionalString (length cmdlineArgs != 0) (" \\\n  " +
+              concatStringsSep " \\\n  " cmdlineArgs);
           ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
         };
       };

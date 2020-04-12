@@ -1,25 +1,21 @@
-{ stdenv, fetchFromGitHub, qmake, qttools, qtbase, libsForQt5, flex, bison }:
+{ stdenv, mkDerivation, fetchFromGitHub, qmake, qttools, qtbase, poppler, flex, bison }:
 
-stdenv.mkDerivation rec {
-  name = "tikzit-${version}";
-  version = "2.1";
+mkDerivation {
+  pname = "tikzit";
+  version = "2.1.5";
 
   src = fetchFromGitHub {
     owner = "tikzit";
     repo = "tikzit";
-    # We don't reference the revision by the appropriate tag (v2.1) here,
-    # as the version of that tag still has the old version number in the
-    # relevant header file. This would cause a bad user experience, as
-    # "Help > About" would still display the old version number even though
-    # we indeed ship the new version 2.1.
-    rev = "97c2a2a7ecae12bf376558997805c24c3b6e3e07";
-    sha256 = "0sbgijbln18gac9989x484r62jlxyagkq0ap0fvzislrkac4z3y9";
+    rev = "v2.1.5";
+    sha256 = "1xrx7r8b6nb912k91pkdwaz2gijfq6lzssyqxard0591h2mycbcg";
   };
 
   nativeBuildInputs = [ qmake qttools flex bison ];
-  buildInputs = [ qtbase libsForQt5.poppler ];
+  buildInputs = [ qtbase poppler ];
 
-  enableParallelBuilding = true;
+  # src/data/tikzlexer.l:29:10: fatal error: tikzparser.parser.hpp: No such file or directory
+  enableParallelBuilding = false;
 
   meta = with stdenv.lib; {
     description = "A graphical tool for rapidly creating graphs and diagrams using PGF/TikZ";
@@ -29,7 +25,7 @@ stdenv.mkDerivation rec {
       can be included directly in papers typeset using LaTeX.
       For preview support the texlive package 'preview' has to be installed.
     '';
-    homepage = https://tikzit.github.io/;
+    homepage = "https://tikzit.github.io/";
     license = licenses.gpl3Plus;
     platforms = platforms.all;
     maintainers = [ maintainers.iblech maintainers.mgttlinger ];

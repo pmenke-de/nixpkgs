@@ -5,7 +5,7 @@
 , glibc
 , openssl
 , libgit2
-, libGLU_combined
+, libGLU, libGL
 , freetype
 , xorg
 , alsaLib
@@ -13,6 +13,7 @@
 , libuuid
 , autoreconfHook
 , gcc48
+, runtimeShell
 , ... }:
 
 { name, src, version, source-date, source-url, ... }:
@@ -84,7 +85,7 @@ stdenv.mkDerivation rec {
     libs = [
       cairo
       libgit2
-      libGLU_combined
+      libGLU libGL
       freetype
       openssl
       libuuid
@@ -114,9 +115,9 @@ stdenv.mkDerivation rec {
 
     # Create the script
     cat > "$out/bin/${cmd}" <<EOF
-    #!/bin/sh
+    #!${runtimeShell}
     set -f
-    LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:$libs" exec $out/pharo "\$@"
+    LD_LIBRARY_PATH="\$LD_LIBRARY_PATH''${LD_LIBRARY_PATH:+:}$libs" exec $out/pharo "\$@"
     EOF
     chmod +x "$out/bin/${cmd}"
     ln -s ${libgit2}/lib/libgit2.so* "$out/"
@@ -138,7 +139,7 @@ stdenv.mkDerivation rec {
     glibc
     openssl
     gcc48
-    libGLU_combined
+    libGLU libGL
     freetype
     xorg.libX11
     xorg.libICE
@@ -164,7 +165,7 @@ stdenv.mkDerivation rec {
       Please fill bug reports on http://bugs.pharo.org under the 'Ubuntu
       packaging (ppa:pharo/stable)' project.
     '';
-    homepage = http://pharo.org;
+    homepage = "http://pharo.org";
     license = licenses.mit;
     maintainers = [ maintainers.lukego ];
     platforms = [ "i686-linux" "x86_64-linux" ];

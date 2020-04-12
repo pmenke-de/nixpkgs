@@ -34,11 +34,12 @@ stdenv.mkDerivation {
     # source: https://aur.archlinux.org/cgit/aur.git/tree/linux412.patch?h=broadcom-wl
     ./linux-4.12.patch
     ./linux-4.15.patch
+    ./linux-5.1.patch
     ./null-pointer-fix.patch
     ./gcc.patch
   ];
 
-  makeFlags = "KBASE=${kernel.dev}/lib/modules/${kernel.modDirVersion}";
+  makeFlags = [ "KBASE=${kernel.dev}/lib/modules/${kernel.modDirVersion}" ];
 
   unpackPhase = ''
     sourceRoot=broadcom-sta
@@ -56,7 +57,7 @@ stdenv.mkDerivation {
 
   meta = {
     description = "Kernel module driver for some Broadcom's wireless cards";
-    homepage = http://www.broadcom.com/support/802.11/linux_sta.php;
+    homepage = "http://www.broadcom.com/support/802.11/linux_sta.php";
     license = stdenv.lib.licenses.unfreeRedistributable;
     maintainers = with stdenv.lib.maintainers; [ phreedom ];
     platforms = stdenv.lib.platforms.linux;

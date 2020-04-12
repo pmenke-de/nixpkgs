@@ -1,30 +1,67 @@
-{ stdenv, fetchurl, vala, meson, ninja
-, pkgconfig, gtk3, glib, gobject-introspection
-, wrapGAppsHook, itstool, gnupg, libsoup
-, gnome3, gpgme, python3, openldap, gcr
-, libsecret, avahi, p11-kit, openssh }:
+{ stdenv
+, fetchurl
+, fetchpatch
+, vala
+, meson
+, ninja
+, libpwquality
+, pkgconfig
+, gtk3
+, glib
+, wrapGAppsHook
+, itstool
+, gnupg
+, libsoup
+, gnome3
+, gpgme
+, python3
+, openldap
+, gcr
+, libsecret
+, avahi
+, p11-kit
+, openssh
+, gsettings-desktop-schemas
+, libhandy
+}:
 
 stdenv.mkDerivation rec {
   pname = "seahorse";
-  version = "3.30.1.1";
+  version = "3.36";
 
   src = fetchurl {
     url = "mirror://gnome/sources/${pname}/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    sha256 = "12x7xmwh62yl0ax90v8nkx3jqzviaz9hz2g56yml78wzww20gawy";
+    sha256 = "1nqn4a6dr4l1fpzj3mv4swhpnvhjcqlwsyhwm59sdzqgdfx4hbwr";
   };
 
   doCheck = true;
 
   nativeBuildInputs = [
-    meson ninja pkgconfig vala itstool wrapGAppsHook
-    python3 gobject-introspection
+    meson
+    ninja
+    pkgconfig
+    vala
+    itstool
+    wrapGAppsHook
+    python3
   ];
+
   buildInputs = [
-    gtk3 glib gcr
-    gnome3.gsettings-desktop-schemas gnupg
-    gnome3.defaultIconTheme gpgme
-    libsecret avahi libsoup p11-kit
-    openssh openldap
+    gtk3
+    glib
+    gcr
+    gsettings-desktop-schemas
+    gnupg
+    gnome3.adwaita-icon-theme
+    gpgme
+    libsecret
+    avahi
+    libsoup
+    p11-kit
+    openssh
+    openldap
+    libpwquality
+    libhandy
   ];
 
   postPatch = ''
@@ -39,7 +76,7 @@ stdenv.mkDerivation rec {
   };
 
   meta = with stdenv.lib; {
-    homepage = https://wiki.gnome.org/Apps/Seahorse;
+    homepage = "https://wiki.gnome.org/Apps/Seahorse";
     description = "Application for managing encryption keys and passwords in the GnomeKeyring";
     maintainers = gnome3.maintainers;
     license = licenses.gpl2;

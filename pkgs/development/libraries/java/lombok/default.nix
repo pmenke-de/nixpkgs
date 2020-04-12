@@ -1,11 +1,11 @@
 { stdenv, fetchurl }:
 
 stdenv.mkDerivation rec {
-  name = "lombok-1.18.4";
+  name = "lombok-1.18.10";
 
   src = fetchurl {
     url = "https://projectlombok.org/downloads/${name}.jar";
-    sha256 = "0hlpycnmzd71ihn59hzf445dvwky2lkv57jimx91i6v7xcnr5wrr";
+    sha256 = "1ymjwxg01dq8qq89hx23yvk5h46hwfb8ihbqbvabmz1vh9afjdi8";
   };
 
   buildCommand = ''
@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
     description = "A library that can write a lot of boilerplate for your Java project";
     platforms = stdenv.lib.platforms.all;
     license = stdenv.lib.licenses.mit;
-    homepage = https://projectlombok.org/;
+    homepage = "https://projectlombok.org/";
     maintainers = [ stdenv.lib.maintainers.CrystalGamma ];
   };
 }

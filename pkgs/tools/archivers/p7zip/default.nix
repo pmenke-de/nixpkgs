@@ -1,7 +1,7 @@
 { stdenv, fetchurl }:
 
 stdenv.mkDerivation rec {
-  name = "p7zip-${version}";
+  pname = "p7zip";
   version = "16.02";
 
   src = fetchurl {
@@ -37,8 +37,10 @@ stdenv.mkDerivation rec {
 
   setupHook = ./setup-hook.sh;
 
+  NIX_CFLAGS_COMPILE = stdenv.lib.optionalString stdenv.cc.isClang "-Wno-error=c++11-narrowing";
+
   meta = {
-    homepage = http://p7zip.sourceforge.net/;
+    homepage = "http://p7zip.sourceforge.net/";
     description = "A port of the 7-zip archiver";
     # license = stdenv.lib.licenses.lgpl21Plus; + "unRAR restriction"
     platforms = stdenv.lib.platforms.unix;

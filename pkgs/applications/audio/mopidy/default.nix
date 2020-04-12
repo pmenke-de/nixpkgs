@@ -1,16 +1,16 @@
-{ stdenv, fetchFromGitHub, pythonPackages, wrapGAppsHook
+{ stdenv, fetchFromGitHub, python3Packages, wrapGAppsHook
 , gst_all_1, glib-networking, gobject-introspection
 }:
 
-pythonPackages.buildPythonApplication rec {
+python3Packages.buildPythonApplication rec {
   pname = "mopidy";
-  version = "2.2.2";
+  version = "3.0.2";
 
   src = fetchFromGitHub {
     owner = "mopidy";
     repo = "mopidy";
     rev = "v${version}";
-    sha256 = "01vl162c7ssf69b0m65ys9fxnsqnfa1whwbprnc063lkcnrnlkr1";
+    sha256 = "1n9lpgq0p112cjgsrc1cd6mnffk56y36g2c5skk9cqzw27qrkd15";
   };
 
   nativeBuildInputs = [ wrapGAppsHook ];
@@ -20,8 +20,8 @@ pythonPackages.buildPythonApplication rec {
     glib-networking gobject-introspection
   ];
 
-  propagatedBuildInputs = with pythonPackages; [
-    gst-python pygobject3 pykka tornado_4 requests
+  propagatedBuildInputs = with python3Packages; [
+    gst-python pygobject3 pykka tornado_4 requests setuptools
   ] ++ stdenv.lib.optional (!stdenv.isDarwin) dbus-python;
 
   # There are no tests
@@ -32,13 +32,13 @@ pythonPackages.buildPythonApplication rec {
   '';
 
   meta = with stdenv.lib; {
-    homepage = https://www.mopidy.com/;
+    homepage = "https://www.mopidy.com/";
     description = ''
       An extensible music server that plays music from local disk, Spotify,
       SoundCloud, Google Play Music, and more
     '';
     license = licenses.asl20;
-    maintainers = with maintainers; [ rickynils fpletz ];
+    maintainers = [ maintainers.fpletz ];
     hydraPlatforms = [];
   };
 }

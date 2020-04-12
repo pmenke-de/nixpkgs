@@ -11,19 +11,18 @@ let
   docbookFiles = "${docbook_xsl}/share/xml/docbook-xsl/catalog.xml:${docbook_xml_dtd_44}/xml/dtd/docbook/catalog.xml";
 in
 stdenv.mkDerivation rec {
-  name = "sssd-${version}";
-  version = "1.16.3";
+  pname = "sssd";
+  version = "1.16.4";
 
   src = fetchurl {
-    url = "https://fedorahosted.org/released/sssd/${name}.tar.gz";
-    sha256 = "1i2fq37w0k71xwqcq1i4l3nglmwybc4694xbrccrih33qsh1fpgf";
+    url = "https://fedorahosted.org/released/sssd/${pname}-${version}.tar.gz";
+    sha256 = "0ngr7cgimyjc6flqkm7psxagp1m4jlzpqkn28pliifbmdg6i5ckb";
   };
-
   patches = [
+    # Fix build failure against samba 4.12.0rc1
     (fetchpatch {
-      name = "duplicate-case-value.diff";
-      url = "https://github.com/SSSD/sssd/commit/1ee12b05570fcfb8.diff";
-      sha256 = "01y8i8cfs2gydn84097cl5fynx0db8b0vr345gh57ypp84in3ixw";
+      url = "https://github.com/SSSD/sssd/commit/bc56b10aea999284458dcc293b54cf65288e325d.patch";
+      sha256 = "0q74sx5n41srq3kdn55l5j1sq4xrjsnl5y4v8yh5mwsijj74yh4g";
     })
   ];
 
@@ -91,7 +90,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "System Security Services Daemon";
-    homepage = https://fedorahosted.org/sssd/;
+    homepage = "https://fedorahosted.org/sssd/";
     license = licenses.gpl3;
     platforms = platforms.linux;
     maintainers = [ maintainers.e-user ];

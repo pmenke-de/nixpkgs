@@ -1,16 +1,16 @@
-{ stdenv, pkgs, fetchurl, makeWrapper, wrapGAppsHook, gvfs, gtk3, atomEnv }:
+{ stdenv, pkgs, fetchurl, wrapGAppsHook, gvfs, gtk3, atomEnv }:
 
 let
   versions = {
     atom = {
-      version = "1.33.0";
-      sha256 = "0f6m6zwgz94m3q11ipyiliap3s5a3zlrg3ldjwkqnxjl6gwlxc2r";
+      version = "1.42.0";
+      sha256 = "1ira528nwxi30jfwyivlac3wkkqb9d2z4jhxwq5m7mnpm5yli6jy";
     };
 
     atom-beta = {
-      version = "1.34.0";
+      version = "1.43.0";
       beta = 0;
-      sha256 = "1xnrr4z55sj46hqr0il26sfs6s3knv60m340cw3rzzic271b3ifw";
+      sha256 = "06if3w5hx7njmyal0012zawn8f5af1z4bjcbzj2c0gd15nlsgm95";
     };
   };
 
@@ -74,7 +74,7 @@ let
 
     meta = with stdenv.lib; {
       description = "A hackable text editor for the 21st Century";
-      homepage = https://atom.io/;
+      homepage = "https://atom.io/";
       license = licenses.mit;
       maintainers = with maintainers; [ offline nequissimus ysndr ];
       platforms = platforms.x86_64;

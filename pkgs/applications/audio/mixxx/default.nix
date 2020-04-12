@@ -1,44 +1,55 @@
-{ stdenv, fetchFromGitHub, makeWrapper, chromaprint, fetchpatch
+{ stdenv, mkDerivation, fetchurl, fetchFromGitHub, chromaprint
 , fftw, flac, faad2, glibcLocales, mp4v2
 , libid3tag, libmad, libopus, libshout, libsndfile, libusb1, libvorbis
-, opusfile
-, pkgconfig, portaudio, portmidi, protobuf, qt4, rubberband, scons, sqlite
-, taglib, upower, vampSDK
+, libGLU, libxcb, lilv, lv2, opusfile
+, pkgconfig, portaudio, portmidi, protobuf, qtbase, qtscript, qtsvg
+, qtx11extras, rubberband, scons, sqlite, taglib, upower, vamp-plugin-sdk
 }:
 
-stdenv.mkDerivation rec {
-  name = "mixxx-${version}";
-  version = "2.1.5";
+let
+  # Because libshout 2.4.2 and newer seem to break streaming in mixxx, build it
+  # with 2.4.1 instead.
+  libshout241 = libshout.overrideAttrs (o: rec {
+    name = "libshout-2.4.1";
+    src = fetchurl {
+      url = "http://downloads.xiph.org/releases/libshout/${name}.tar.gz";
+      sha256 = "0kgjpf8jkgyclw11nilxi8vyjk4s8878x23qyxnvybbgqbgbib7k";
+    };
+  });
+in
+mkDerivation rec {
+  pname = "mixxx";
+  version = "2.2.3";
 
   src = fetchFromGitHub {
     owner = "mixxxdj";
     repo = "mixxx";
     rev = "release-${version}";
-    sha256 = "0h14pwglz03sdmgzviypv1qa1xfjclrnhyqaq5nd60j47h4z39dr";
+    sha256 = "1h7q25fv62c5m74d4cn1m6mpanmqpbl2wqbch4qvn488jb2jw1dv";
   };
 
-  nativeBuildInputs = [ makeWrapper ];
-
+  nativeBuildInputs = [ scons.py2 ];
   buildInputs = [
-    chromaprint fftw flac faad2 glibcLocales mp4v2 libid3tag libmad libopus libshout libsndfile
-    libusb1 libvorbis opusfile pkgconfig portaudio portmidi protobuf qt4
-    rubberband scons sqlite taglib upower vampSDK
+    chromaprint fftw flac faad2 glibcLocales mp4v2 libid3tag libmad libopus libshout241 libsndfile
+    libusb1 libvorbis libxcb libGLU lilv lv2 opusfile pkgconfig portaudio portmidi protobuf qtbase qtscript qtsvg
+    qtx11extras rubberband sqlite taglib upower vamp-plugin-sdk
   ];
+
+  enableParallelBuilding = true;
 
   sconsFlags = [
     "build=release"
-    "qtdir=${qt4}"
+    "qtdir=${qtbase}"
     "faad=1"
     "opus=1"
   ];
 
-  fixupPhase = ''
-    wrapProgram $out/bin/mixxx \
-      --set LOCALE_ARCHIVE ${glibcLocales}/lib/locale/locale-archive;
-  '';
+  qtWrapperArgs = [
+    "--set LOCALE_ARCHIVE ${glibcLocales}/lib/locale/locale-archive"
+  ];
 
   meta = with stdenv.lib; {
-    homepage = https://mixxx.org;
+    homepage = "https://mixxx.org";
     description = "Digital DJ mixing software";
     license = licenses.gpl2Plus;
     maintainers = [ maintainers.aszlig maintainers.goibhniu maintainers.bfortz ];

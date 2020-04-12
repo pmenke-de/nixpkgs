@@ -4,7 +4,7 @@
 }:
 
 buildGoPackage rec {
-  name = "gogetdoc-unstable-${version}";
+  pname = "gogetdoc-unstable";
   version = "2018-10-25";
   rev = "9098cf5fc236a5e25060730544af2ba6d65cd968";
 
@@ -23,7 +23,7 @@ buildGoPackage rec {
 
   meta = with lib; {
     description = "Gets documentation for items in Go source code";
-    homepage = https://github.com/zmb3/gogetdoc;
+    homepage = "https://github.com/zmb3/gogetdoc";
     license = licenses.bsd3;
     maintainers = with maintainers; [ kalbasit ];
     platforms = platforms.linux ++ platforms.darwin;

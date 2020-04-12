@@ -1,27 +1,26 @@
-{ stdenv, fetchurl, vala, pkgconfig, gtk3, gnome3, gdk_pixbuf, librsvg, wrapGAppsHook
+{ stdenv, fetchurl, vala, pkgconfig, gtk3, gnome3, gdk-pixbuf, librsvg, wrapGAppsHook
 , gettext, itstool, clutter, clutter-gtk, libxml2, appstream-glib
 , meson, ninja, python3 }:
 
 stdenv.mkDerivation rec {
-  name = "lightsoff-${version}";
-  version = "3.30.0";
+  pname = "lightsoff";
+  version = "3.36.0";
 
   src = fetchurl {
-    url = "mirror://gnome/sources/lightsoff/${stdenv.lib.versions.majorMinor version}/${name}.tar.xz";
-    sha256 = "1cv5pkw0n8k5wb98ihx0z1z615w1wc09y884wk608wy40bgq46wp";
+    url = "mirror://gnome/sources/lightsoff/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
+    sha256 = "0qvafpciqbqmpan9i8ans3lqs29v02zblz6k0hzj4p3qq4sch3a3";
   };
-
-  postPatch = ''
-    chmod +x meson_post_install.py # patchShebangs requires executable file
-    patchShebangs meson_post_install.py
-    sed -i '/gtk-update-icon-cache/s/^/#/' meson_post_install.py
-  '';
 
   nativeBuildInputs = [
     vala pkgconfig wrapGAppsHook itstool gettext appstream-glib libxml2
     meson ninja python3
   ];
-  buildInputs = [ gtk3 gnome3.defaultIconTheme gdk_pixbuf librsvg clutter clutter-gtk ];
+  buildInputs = [ gtk3 gnome3.adwaita-icon-theme gdk-pixbuf librsvg clutter clutter-gtk ];
+
+  postPatch = ''
+    chmod +x build-aux/meson_post_install.py
+    patchShebangs build-aux/meson_post_install.py
+  '';
 
   passthru = {
     updateScript = gnome3.updateScript {
@@ -31,7 +30,7 @@ stdenv.mkDerivation rec {
   };
 
   meta = with stdenv.lib; {
-    homepage = https://wiki.gnome.org/Apps/Lightsoff;
+    homepage = "https://wiki.gnome.org/Apps/Lightsoff";
     description = "Puzzle game, where the objective is to turn off all of the tiles on the board";
     maintainers = gnome3.maintainers;
     license = licenses.gpl2;

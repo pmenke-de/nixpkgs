@@ -9,11 +9,11 @@
 
 buildPythonPackage rec {
   pname = "google-cloud-trace";
-  version = "0.19.0";
+  version = "0.23.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "2cb774498e90143a9565dd50e2814b6b0292242a53b8804a1a529989e18b7461";
+    sha256 = "1a3fad1ae2b780dd5e6d5ddc626db722749405b7b66f3c2e5e87a9d29a4819c8";
   };
 
   checkInputs = [ pytest mock ];
@@ -25,7 +25,7 @@ buildPythonPackage rec {
 
   meta = with stdenv.lib; {
     description = "Stackdriver Trace API client library";
-    homepage = https://github.com/GoogleCloudPlatform/google-cloud-python;
+    homepage = "https://github.com/GoogleCloudPlatform/google-cloud-python";
     license = licenses.asl20;
     maintainers = [ maintainers.costrouc ];
   };

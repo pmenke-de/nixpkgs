@@ -1,24 +1,24 @@
-{ stdenv, fetchpatch, python3Packages, acl, libb2, lz4, zstd, openssl, openssh }:
+{ stdenv, python3, acl, libb2, lz4, zstd, openssl, openssh }:
 
-python3Packages.buildPythonApplication rec {
+python3.pkgs.buildPythonApplication rec {
   pname = "borgbackup";
-  version = "1.1.8";
+  version = "1.1.11";
 
-  src = python3Packages.fetchPypi {
+  src = python3.pkgs.fetchPypi {
     inherit pname version;
-    sha256 = "0b4370480ca0114cb0bb534286241af8a35c6ffb71404dfa409ed06099661b63";
+    sha256 = "190gjzx83b6p64nqj840x382dgz9gfv0gm7wj585lnkrpa90j29n";
   };
 
-  nativeBuildInputs = with python3Packages; [
+  nativeBuildInputs = with python3.pkgs; [
     # For building documentation:
     sphinx guzzle_sphinx_theme
   ];
   buildInputs = [
-    libb2 lz4 zstd openssl python3Packages.setuptools_scm
+    libb2 lz4 zstd openssl python3.pkgs.setuptools_scm
   ] ++ stdenv.lib.optionals stdenv.isLinux [ acl ];
-  propagatedBuildInputs = with python3Packages; [
-    cython msgpack-python
-  ] ++ stdenv.lib.optionals (!stdenv.isDarwin) [ llfuse ];
+  propagatedBuildInputs = with python3.pkgs; [
+    cython llfuse
+  ];
 
   preConfigure = ''
     export BORG_OPENSSL_PREFIX="${openssl.dev}"
@@ -50,7 +50,7 @@ python3Packages.buildPythonApplication rec {
     cp scripts/shell_completions/zsh/_borg $out/share/zsh/site-functions/
   '';
 
-  checkInputs = with python3Packages; [
+  checkInputs = with python3.pkgs; [
     pytest
   ];
 
@@ -58,14 +58,14 @@ python3Packages.buildPythonApplication rec {
     HOME=$(mktemp -d) py.test --pyargs borg.testsuite
   '';
 
-  # 63 failures, needs pytest-benchmark
+  # 64 failures, needs pytest-benchmark
   doCheck = false;
 
   meta = with stdenv.lib; {
     description = "A deduplicating backup program (attic fork)";
-    homepage = https://www.borgbackup.org;
+    homepage = "https://www.borgbackup.org";
     license = licenses.bsd3;
     platforms = platforms.unix; # Darwin and FreeBSD mentioned on homepage
-    maintainers = with maintainers; [ flokli dotlambda ];
+    maintainers = with maintainers; [ flokli dotlambda globin ];
   };
 }

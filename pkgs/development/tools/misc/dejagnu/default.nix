@@ -44,10 +44,10 @@ stdenv.mkDerivation rec {
       Tool command language.
     '';
 
-    homepage = https://www.gnu.org/software/dejagnu/;
+    homepage = "https://www.gnu.org/software/dejagnu/";
     license = licenses.gpl2Plus;
 
     platforms = platforms.unix;
-    maintainers = with maintainers; [ wkennington vrthra ];
+    maintainers = with maintainers; [ vrthra ];
   };
 }

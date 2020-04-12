@@ -1,18 +1,19 @@
-{ stdenv
-, buildPythonPackage
-, fetchPypi
+{ lib, buildPythonPackage, fetchFromGitHub, isPy27
+, click
 , pytest
 , six
-, click
 }:
 
 buildPythonPackage rec {
   pname = "xdis";
-  version = "3.8.9";
+  version = "4.2.4";
+  disabled = isPy27;
 
-  src = fetchPypi {
-    inherit pname version;
-    sha256 = "1q2dg3hnsmmpjcc7lzjf5nd041mpbwa2bq3dgr4p6wv65vncny9v";
+  src = fetchFromGitHub {
+    owner = "rocky";
+    repo = "python-xdis";
+    rev = version;
+    sha256 = "0nq6ijmj48c2dk75vmb040wgvr4y7wyjxrcm2dyvcwfk2h6phwri";
   };
 
   checkInputs = [ pytest ];
@@ -22,10 +23,9 @@ buildPythonPackage rec {
     make check
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Python cross-version byte-code disassembler and marshal routines";
-    homepage = https://github.com/rocky/python-xdis/;
+    homepage = "https://github.com/rocky/python-xdis/";
     license = licenses.gpl2;
   };
-
 }

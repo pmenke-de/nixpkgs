@@ -2,13 +2,14 @@
 
 python_openzwave.overridePythonAttrs (oldAttrs: rec {
   pname = "homeassistant_pyozw";
-  version = "0.1.1";
+  version = "0.1.7";
 
   src = fetchPypi {
     inherit pname version;
     extension = "zip";
-    sha256 = "136582d1b948168991af8ba1011304684834a4a61a6588e1c1f70b439b6f2483";
+    sha256 = "2d500638270ee4f0e7e9e114d9b4402c94c232f314116cdcf88d7c1dc9a44427";
   };
 
-  meta.homepage = https://github.com/home-assistant/python-openzwave;
+  patches = [];
+  meta.homepage = "https://github.com/home-assistant/python-openzwave";
 })

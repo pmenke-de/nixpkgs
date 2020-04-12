@@ -1,12 +1,12 @@
 { stdenv, fetchurl, jre, makeWrapper }:
 
 stdenv.mkDerivation rec {
-  name = "closure-compiler-${version}";
-  version = "20181210";
+  pname = "closure-compiler";
+  version = "20200315";
 
   src = fetchurl {
     url = "https://dl.google.com/closure-compiler/compiler-${version}.tar.gz";
-    sha256 = "0c79ki4lacfwks5f2q7kzcg6v3a65zs5srm14k09gh5k1hvvnayd";
+    sha256 = "0akif1wgsyyqrfkidkwhw47dsx471h3b4zsjhnh4rf6kv7by3q65";
   };
 
   sourceRoot = ".";
@@ -23,7 +23,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "A tool for making JavaScript download and run faster";
-    homepage = https://developers.google.com/closure/compiler/;
+    homepage = "https://developers.google.com/closure/compiler/";
     license = licenses.asl20;
     platforms = platforms.all;
   };

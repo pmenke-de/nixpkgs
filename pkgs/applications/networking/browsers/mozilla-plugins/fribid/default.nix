@@ -1,12 +1,12 @@
 { stdenv, fetchurl, pkgconfig, openssl, glib, libX11, gtk2, gettext, intltool }:
 
 stdenv.mkDerivation rec {
-  name = "fribid-${version}";
+  pname = "fribid";
   version = "1.0.4";
   builder = ./builder.sh;
 
   src = fetchurl {
-    url = "https://fribid.se/releases/source/${name}.tar.bz2";
+    url = "https://fribid.se/releases/source/${pname}-${version}.tar.bz2";
     sha256 = "a679f3a0534d5f05fac10b16b49630a898c0b721cfa24d2c827fa45485476649";
   };
 
@@ -30,7 +30,7 @@ stdenv.mkDerivation rec {
       Linux/BSD distributions that the official software doesn't
       support.
     '';
-    homepage = http://fribid.se;
+    homepage = "http://fribid.se";
     license = with licenses; [ gpl2 mpl10 ];
     maintainers = [ maintainers.edwtjo ];
     platforms = platforms.linux;

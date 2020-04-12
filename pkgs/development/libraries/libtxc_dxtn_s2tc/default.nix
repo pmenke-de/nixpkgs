@@ -1,9 +1,10 @@
-{ stdenv, fetchurl, autoreconfHook, libGLU_combined }:
+{ stdenv, fetchurl, autoreconfHook, libGL, libGLU }:
 
 let version = "1.0"; in
 
-stdenv.mkDerivation rec {
-  name = "libtxc_dxtn_s2tc-${version}";
+stdenv.mkDerivation {
+  pname = "libtxc_dxtn_s2tc";
+  inherit version;
 
   src = fetchurl {
     url = "https://github.com/divVerent/s2tc/archive/v${version}.tar.gz";
@@ -11,12 +12,12 @@ stdenv.mkDerivation rec {
   };
 
   nativeBuildInputs = [ autoreconfHook ];
-  buildInputs = [ libGLU_combined ];
+  buildInputs = [ libGL libGLU ];
 
   meta = {
     description = "A patent-free S3TC compatible implementation";
-    homepage = https://github.com/divVerent/s2tc;
-    repositories.git = https://github.com/divVerent/s2tc.git;
+    homepage = "https://github.com/divVerent/s2tc";
+    repositories.git = "https://github.com/divVerent/s2tc.git";
     license = stdenv.lib.licenses.mit;
     platforms = stdenv.lib.platforms.linux;
     maintainers = [ stdenv.lib.maintainers.cpages ];

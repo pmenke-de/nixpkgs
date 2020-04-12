@@ -1,7 +1,7 @@
 { stdenv, buildGoPackage, fetchFromGitHub }:
 
 buildGoPackage rec {
-  name = "gopkgs-${version}";
+  pname = "gopkgs";
   version = "2.0.1";
 
   goPackagePath = "github.com/uudashr/gopkgs";
@@ -16,7 +16,7 @@ buildGoPackage rec {
 
   meta = {
     description = "Tool to get list available Go packages.";
-    homepage = https://github.com/uudashr/gopkgs;
+    homepage = "https://github.com/uudashr/gopkgs";
     maintainers = with stdenv.lib.maintainers; [ vdemeester ];
     license = stdenv.lib.licenses.mit;
   };

@@ -1,25 +1,23 @@
-{ stdenv, fetchurl }:
+{ lib, fetchurl }:
 
-stdenv.mkDerivation rec {
-  name = "agave-${version}";
-  version = "008";
+let
+  pname = "agave";
+  version = "14";
+in fetchurl {
+  name = "${pname}-${version}";
+  url = "https://github.com/agarick/agave/releases/download/v${version}/Agave-Regular.ttf";
 
-  src = fetchurl {
-    url = "https://github.com/agarick/agave/releases/download/v${version}/${name}.tar.gz";
-    sha256 = "0g50mqpffn4dq761vibaf8dwfkbcl5da1cc89qz6pq35ircipbns";
-  };
-
-  sourceRoot = ".";
-
-  dontBuild = true;
-  installPhase = ''
-    mkdir -p $out/share/fonts/truetype
-    cp *.ttf $out/share/fonts/truetype
+  downloadToTemp = true;
+  recursiveHash = true;
+  postFetch = ''
+    install -D $downloadedFile $out/share/fonts/truetype/Agave-Regular.ttf
   '';
 
-  meta = with stdenv.lib; {
+  sha256 = "14hr6cdn5xbfpszj4qyfqbwmjyrkmi83yl0g9j3y3jw561jwy27j";
+
+  meta = with lib; {
     description = "truetype monospaced typeface designed for X environments";
-    homepage = https://b.agaric.net/page/agave;
+    homepage = "https://b.agaric.net/page/agave";
     license = licenses.mit;
     maintainers = with maintainers; [ dtzWill ];
     platforms = platforms.all;

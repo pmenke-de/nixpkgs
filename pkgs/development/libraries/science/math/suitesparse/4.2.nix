@@ -5,7 +5,7 @@ let
 in
 stdenv.mkDerivation rec {
   version = "4.2.1";
-  name = "suitesparse-${version}";
+  pname = "suitesparse";
   src = fetchurl {
     url = "http://www.cise.ufl.edu/research/sparse/SuiteSparse/SuiteSparse-${version}.tar.gz" ;
     sha256 = "1ga69637x7kdkiy3w3lq9dvva7220bdangv2lch2wx1hpi83h0p8";
@@ -34,7 +34,7 @@ stdenv.mkDerivation rec {
   ];
 
   meta = with stdenv.lib; {
-    homepage = http://faculty.cse.tamu.edu/davis/suitesparse.html;
+    homepage = "http://faculty.cse.tamu.edu/davis/suitesparse.html";
     description = "A suite of sparse matrix algorithms";
     license = with licenses; [ bsd2 gpl2Plus lgpl21Plus ];
     maintainers = with maintainers; [ ttuegel ];

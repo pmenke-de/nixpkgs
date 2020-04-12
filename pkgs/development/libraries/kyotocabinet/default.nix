@@ -33,10 +33,9 @@ stdenv.mkDerivation rec {
   buildInputs = [ zlib ];
 
   meta = with stdenv.lib; {
-    homepage = http://fallabs.com/kyotocabinet;
+    homepage = "http://fallabs.com/kyotocabinet";
     description = "A library of routines for managing a database";
     license = licenses.gpl3;
     platforms = platforms.all;
-    maintainers = with maintainers; [ wkennington ];
   };
 }

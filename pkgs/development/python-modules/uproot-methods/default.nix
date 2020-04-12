@@ -6,18 +6,21 @@
 }:
 
 buildPythonPackage rec {
-  version = "0.2.7";
+  version = "0.7.3";
   pname = "uproot-methods";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0c9g7scq5nga6r2gn4j24xfs5rssn6z6aj4bhpk5ayzz8hhpss6w";
+    sha256 = "01x7raa2l75g96y6fsi6h2fjpjm0swlnw0j9vn8mlahridycrjss";
   };
 
   propagatedBuildInputs = [ numpy awkward ];
 
+  # No tests on PyPi
+  doCheck = false;
+
   meta = with stdenv.lib; {
-    homepage = https://github.com/scikit-hep/uproot-methods;
+    homepage = "https://github.com/scikit-hep/uproot-methods";
     description = "Pythonic mix-ins for ROOT classes";
     license = licenses.bsd3;
     maintainers = [ maintainers.costrouc ];

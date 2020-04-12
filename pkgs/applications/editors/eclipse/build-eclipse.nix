@@ -53,8 +53,9 @@ stdenv.mkDerivation rec {
   ''; # */
 
   meta = {
-    homepage = http://www.eclipse.org/;
+    homepage = "http://www.eclipse.org/";
     inherit description;
+    platforms = [ "x86_64-linux" ];
   };
 
 }

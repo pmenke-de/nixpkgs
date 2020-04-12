@@ -1,7 +1,7 @@
 { stdenv, fetchzip, libtool, ghostscript, groff }:
 
 stdenv.mkDerivation rec {
-  name = "fstrcmp-${version}";
+  pname = "fstrcmp";
   version = "0.7";
 
   src = fetchzip {
@@ -22,8 +22,8 @@ stdenv.mkDerivation rec {
       comparisons of strings and byte arrays, including multi-byte character
       strings.
     '';
-    homepage = http://fstrcmp.sourceforge.net/;
-    downloadPage = https://sourceforge.net/projects/fstrcmp/;
+    homepage = "http://fstrcmp.sourceforge.net/";
+    downloadPage = "https://sourceforge.net/projects/fstrcmp/";
     license = licenses.gpl3;
     maintainers = [ maintainers.sephalon ];
     platforms = platforms.unix;

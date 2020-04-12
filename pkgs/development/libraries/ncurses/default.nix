@@ -13,15 +13,18 @@
 }:
 
 stdenv.mkDerivation rec {
-  version = "6.1-20181027";
+  # Note the revision needs to be adjusted.
+  version = "6.2";
   name = "ncurses-${version}" + lib.optionalString (abiVersion == "5") "-abi5-compat";
 
-  src = fetchurl {
-    urls = [
-      "https://invisible-mirror.net/archives/ncurses/current/ncurses-${version}.tgz"
-      "ftp://ftp.invisible-island.net/ncurses/current/ncurses-${version}.tgz"
-    ];
-    sha256 = "1xn6wpi22jc61158w4ifq6s1fvilhmsy1in2srn3plk8pm0d4902";
+  # We cannot use fetchFromGitHub (which calls fetchzip)
+  # because we need to be able to use fetchurlBoot.
+  src = let
+    # Note the version needs to be adjusted.
+    rev = "v${version}";
+  in fetchurl {
+    url = "https://github.com/mirror/ncurses/archive/${rev}.tar.gz";
+    sha256 = "15r2456g0mlq2q7gh2z52vl6zv6y0z8sdchrs80kg4idqd8sm8fd";
   };
 
   patches = lib.optional (!stdenv.cc.isClang) ./clang.patch;
@@ -138,6 +141,7 @@ stdenv.mkDerivation rec {
     moveToOutput "bin/tset" "$out"
     moveToOutput "bin/captoinfo" "$out"
     moveToOutput "bin/infotocap" "$out"
+    moveToOutput "bin/infocmp" "$out"
   '';
 
   preFixup = lib.optionalString (!stdenv.hostPlatform.isCygwin && !enableStatic) ''
@@ -161,11 +165,10 @@ stdenv.mkDerivation rec {
       ported to OS/2 Warp!
     '';
 
-    homepage = https://www.gnu.org/software/ncurses/;
+    homepage = "https://www.gnu.org/software/ncurses/";
 
     license = lib.licenses.mit;
     platforms = lib.platforms.all;
-    maintainers = [ lib.maintainers.wkennington ];
   };
 
   passthru = {

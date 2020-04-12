@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, fetchFromGitHub, autoreconfHook, cmake, makeWrapper, pkgconfig, qmake
+{ stdenv, fetchurl, fetchFromGitHub, autoreconfHook, cmake, wrapQtAppsHook, pkgconfig, qmake
 , curl, grantlee, libgit2, libusb, libssh2, libxml2, libxslt, libzip, zlib
 , qtbase, qtconnectivity, qtlocation, qtsvg, qttools, qtwebkit, libXcomposite
 }:
@@ -6,8 +6,9 @@
 let
   version = "4.8.2";
 
-  libdc = stdenv.mkDerivation rec {
-    name = "libdivecomputer-ssrf-${version}";
+  libdc = stdenv.mkDerivation {
+    pname = "libdivecomputer-ssrf";
+    inherit version;
 
     src = fetchurl {
       url = "https://subsurface-divelog.org/downloads/libdivecomputer-subsurface-branch-${version}.tgz";
@@ -21,7 +22,7 @@ let
     enableParallelBuilding = true;
 
     meta = with stdenv.lib; {
-      homepage = http://www.libdivecomputer.org;
+      homepage = "http://www.libdivecomputer.org";
       description = "A cross-platform and open source library for communication with dive computers from various manufacturers";
       maintainers = with maintainers; [ mguentner ];
       license = licenses.lgpl21;
@@ -30,7 +31,7 @@ let
   };
 
   googlemaps = stdenv.mkDerivation rec {
-    name = "googlemaps-${version}";
+    pname = "googlemaps";
 
     version = "2017-12-18";
 
@@ -65,8 +66,9 @@ let
     };
   };
 
-in stdenv.mkDerivation rec {
-  name = "subsurface-${version}";
+in stdenv.mkDerivation {
+  pname = "subsurface";
+  inherit version;
 
   src = fetchurl {
     url = "https://subsurface-divelog.org/downloads/Subsurface-${version}.tgz";
@@ -79,17 +81,12 @@ in stdenv.mkDerivation rec {
     qtbase qtconnectivity qtsvg qttools qtwebkit
   ];
 
-  nativeBuildInputs = [ cmake makeWrapper pkgconfig ];
+  nativeBuildInputs = [ cmake wrapQtAppsHook pkgconfig ];
 
   cmakeFlags = [
     "-DLIBDC_FROM_PKGCONFIG=ON"
     "-DNO_PRINTING=OFF"
   ];
-
-  postInstall = ''
-    wrapProgram $out/bin/subsurface \
-      --prefix QT_PLUGIN_PATH : "${googlemaps}/${googlemaps.pluginsSubdir}"
-  '';
 
   enableParallelBuilding = true;
 
@@ -103,7 +100,7 @@ in stdenv.mkDerivation rec {
       conveniently be entered using a map interface), logging of equipment used and
       names of other divers, and lets users rate dives and provide additional notes.
     '';
-    homepage = https://subsurface-divelog.org;
+    homepage = "https://subsurface-divelog.org";
     license = licenses.gpl2;
     maintainers = with maintainers; [ mguentner ];
     platforms = platforms.all;

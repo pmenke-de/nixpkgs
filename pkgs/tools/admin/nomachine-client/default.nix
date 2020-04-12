@@ -1,23 +1,25 @@
-{ stdenv, lib, file, fetchurl, makeWrapper,
+{ stdenv, file, fetchurl, makeWrapper,
   autoPatchelfHook, jsoncpp, libpulseaudio }:
 let
-  versionMajor = "6.4";
-  versionMinor = "6_1";
+  versionMajor = "6.9";
+  versionMinor = "2";
+  versionBuild_x86_64 = "1";
+  versionBuild_i686 = "1";
 in
   stdenv.mkDerivation rec {
-    name = "nomachine-client-${version}";
+    pname = "nomachine-client";
     version = "${versionMajor}.${versionMinor}";
   
     src =
       if stdenv.hostPlatform.system == "x86_64-linux" then
         fetchurl {
-          url = "https://download.nomachine.com/download/${versionMajor}/Linux/nomachine_${version}_x86_64.tar.gz";
-          sha256 = "141pv277kl5ij1pmc0iadc0hnslxri2qaqvsjkmmvls4432jh0yi";
+          url = "https://download.nomachine.com/download/${versionMajor}/Linux/nomachine_${version}_${versionBuild_x86_64}_x86_64.tar.gz";
+          sha256 = "1z2pcfkzicjma4lxrj4qx43xyml993v7qyjd7k8xy8hw85fwnzii";
         }
       else if stdenv.hostPlatform.system == "i686-linux" then
         fetchurl {
-          url = "https://download.nomachine.com/download/${versionMajor}/Linux/nomachine_${version}_i686.tar.gz";
-          sha256 = "0a2vi4ygw34yw8rcjhw17mqx5qbjnym4jkap8paik8lisb5mhnyj";
+          url = "https://download.nomachine.com/download/${versionMajor}/Linux/nomachine_${version}_${versionBuild_i686}_i686.tar.gz";
+          sha256 = "03421s0k91c02ga9k6bdvixw71brlgi13q82cinnfayg3fhb0rb6";
         }
       else
         throw "NoMachine client is not supported on ${stdenv.hostPlatform.system}";
@@ -75,10 +77,10 @@ in
 
     meta = with stdenv.lib; {
       description = "NoMachine remote desktop client (nxplayer)";
-      homepage = https://www.nomachine.com/;
+      homepage = "https://www.nomachine.com/";
       license = {
         fullName = "NoMachine 6 End-User License Agreement";
-        url = https://www.nomachine.com/licensing-6;
+        url = "https://www.nomachine.com/licensing-6";
         free = false;
       };
       maintainers = with maintainers; [ talyz ];

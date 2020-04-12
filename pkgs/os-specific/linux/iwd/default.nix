@@ -1,52 +1,62 @@
-{ stdenv, fetchgit, autoreconfHook, pkgconfig, coreutils, readline, python3Packages }:
+{ stdenv
+, fetchgit
+, fetchpatch
+, autoreconfHook
+, pkgconfig
+, ell
+, coreutils
+, docutils
+, readline
+, openssl
+, python3Packages
+}:
 
-let
-  ell = fetchgit {
-     url = https://git.kernel.org/pub/scm/libs/ell/ell.git;
-     rev = "0.15";
-     sha256 = "1jwk5gxcs964ddca9asw6fvc4h9q8d2x1y3linfi11b5vf30bghn";
-  };
-in stdenv.mkDerivation rec {
-  name = "iwd-${version}";
-  version = "0.12";
+stdenv.mkDerivation rec {
+  pname = "iwd";
+  version = "1.6";
 
   src = fetchgit {
-    url = https://git.kernel.org/pub/scm/network/wireless/iwd.git;
+    url = "https://git.kernel.org/pub/scm/network/wireless/iwd.git";
     rev = version;
-    sha256 = "156zq3zqa2vfmvy3yv9lng23mhrhlgwh0p2x3fcn10nkks9q89pn";
+    sha256 = "0c38c7a234cwdd5y1brq4w56xszs8zlp57rr3nvgp8z8djcy1qvx";
   };
 
   nativeBuildInputs = [
     autoreconfHook
+    docutils
     pkgconfig
     python3Packages.wrapPython
   ];
 
   buildInputs = [
-    readline
+    ell
     python3Packages.python
+    readline
   ];
+
+  checkInputs = [ openssl ];
 
   pythonPath = [
     python3Packages.dbus-python
     python3Packages.pygobject3
   ];
 
-  # Enable when it works again
-  enableParallelBuilding = false;
-
   configureFlags = [
-    "--with-dbus-datadir=$(out)/etc/"
-    "--with-dbus-busdir=$(out)/usr/share/dbus-1/system-services/"
-    "--with-systemd-unitdir=$(out)/lib/systemd/system/"
-    "--localstatedir=/var/"
+    "--enable-external-ell"
     "--enable-wired"
+    "--localstatedir=/var/"
+    "--with-dbus-busdir=${placeholder "out"}/share/dbus-1/system-services/"
+    "--with-dbus-datadir=${placeholder "out"}/share/"
+    "--with-systemd-modloaddir=${placeholder "out"}/etc/modules-load.d/" # maybe
+    "--with-systemd-unitdir=${placeholder "out"}/lib/systemd/system/"
+    "--with-systemd-networkdir=${placeholder "out"}/lib/systemd/network/"
   ];
 
   postUnpack = ''
-    ln -s ${ell} ell
     patchShebangs .
   '';
+
+  doCheck = true;
 
   postInstall = ''
     cp -a test/* $out/bin/
@@ -60,17 +70,19 @@ in stdenv.mkDerivation rec {
   '';
 
   postFixup = ''
-    substituteInPlace $out/usr/share/dbus-1/system-services/net.connman.ead.service \
-                      --replace /bin/false ${coreutils}/bin/false
-    substituteInPlace $out/usr/share/dbus-1/system-services/net.connman.iwd.service \
-                      --replace /bin/false ${coreutils}/bin/false
+    substituteInPlace $out/share/dbus-1/system-services/net.connman.ead.service \
+      --replace /bin/false ${coreutils}/bin/false
+    substituteInPlace $out/share/dbus-1/system-services/net.connman.iwd.service \
+      --replace /bin/false ${coreutils}/bin/false
   '';
 
+  enableParallelBuilding = true;
+
   meta = with stdenv.lib; {
-    homepage = https://git.kernel.org/pub/scm/network/wireless/iwd.git;
+    homepage = "https://git.kernel.org/pub/scm/network/wireless/iwd.git";
     description = "Wireless daemon for Linux";
     license = licenses.lgpl21;
     platforms = platforms.linux;
-    maintainers = [ maintainers.mic92 ];
+    maintainers = with maintainers; [ dtzWill fpletz ];
   };
 }

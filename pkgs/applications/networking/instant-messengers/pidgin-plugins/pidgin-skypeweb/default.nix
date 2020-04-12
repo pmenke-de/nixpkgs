@@ -1,7 +1,7 @@
 { stdenv, fetchFromGitHub, pkgconfig, pidgin, json-glib }:
 
 stdenv.mkDerivation rec {
-  name = "pidgin-skypeweb-${version}";
+  pname = "pidgin-skypeweb";
   version = "1.5";
 
   src = fetchFromGitHub {
@@ -22,10 +22,10 @@ stdenv.mkDerivation rec {
   PKG_CONFIG_PURPLE_DATADIR = "${placeholder "out"}/share";
 
   meta = with stdenv.lib; {
-    homepage = https://github.com/EionRobb/skype4pidgin;
+    homepage = "https://github.com/EionRobb/skype4pidgin";
     description = "SkypeWeb plugin for Pidgin";
     license = licenses.gpl3;
     platforms = platforms.linux;
-    maintainers = with maintainers; [ jgeerds ];
+    maintainers = with maintainers; [ ];
   };
 }

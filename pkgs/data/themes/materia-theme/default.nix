@@ -1,19 +1,19 @@
-{ stdenv, fetchFromGitHub, gnome3, libxml2, gtk-engine-murrine, gdk_pixbuf, librsvg, bc }:
+{ stdenv, fetchFromGitHub, gnome3, glib, libxml2, gtk-engine-murrine, gdk-pixbuf, librsvg, bc }:
 
 stdenv.mkDerivation rec {
-  name = "materia-theme-${version}";
-  version = "20181125";
+  pname = "materia-theme";
+  version = "20190912";
 
   src = fetchFromGitHub {
     owner = "nana-4";
-    repo = "materia-theme";
+    repo = pname;
     rev = "v${version}";
-    sha256 = "17gsgll2m534lwvpffqisdmhhmn0da419wnpq39wv5cjnmk0q3by";
+    sha256 = "07vbql1y9jfd0m34lw1674cfr6217dzg3irk0450kny8sjrrj6dx";
   };
 
-  nativeBuildInputs = [ gnome3.glib libxml2 bc ];
+  nativeBuildInputs = [ glib libxml2 bc ];
 
-  buildInputs = [ gnome3.gnome-themes-extra gdk_pixbuf librsvg ];
+  buildInputs = [ gnome3.gnome-themes-extra gdk-pixbuf librsvg ];
 
   propagatedUserEnvPkgs = [ gtk-engine-murrine ];
 
@@ -29,8 +29,8 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with stdenv.lib; {
-    description = "A Material Design theme for GNOME/GTK+ based desktop environments";
-    homepage = https://github.com/nana-4/materia-theme;
+    description = "Material Design theme for GNOME/GTK based desktop environments";
+    homepage = "https://github.com/nana-4/materia-theme";
     license = licenses.gpl2;
     platforms = platforms.all;
     maintainers = [ maintainers.mounium ];

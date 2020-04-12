@@ -1,5 +1,6 @@
-{ lib, stdenv, zlib, lzo, libtasn1, nettle, pkgconfig, lzip
-, guileBindings, guile, perl, gmp, autogen, libidn, p11-kit, unbound, libiconv
+{ config, lib, stdenv, zlib, lzo, libtasn1, nettle, pkgconfig, lzip
+, perl, gmp, autogen, libidn, p11-kit, unbound, libiconv
+, guileBindings ? config.gnutls.guile or false, guile
 , tpmSupport ? true, trousers, nettools, gperftools, gperf, gettext, automake
 , yacc, texinfo
 
@@ -14,7 +15,8 @@ let
   doCheck = !stdenv.isFreeBSD && !stdenv.isDarwin && lib.versionAtLeast version "3.4";
 in
 stdenv.mkDerivation {
-  name = "gnutls-kdh-${version}";
+  pname = "gnutls-kdh";
+  inherit version;
 
   inherit src patches;
 
@@ -84,9 +86,10 @@ stdenv.mkDerivation {
        layer. It adds TLS-KDH ciphers: Kerberos + Diffie-Hellman.
     '';
 
-    homepage = https://github.com/arpa2/gnutls-kdh;
+    homepage = "https://github.com/arpa2/gnutls-kdh";
     license = licenses.lgpl21Plus;
     maintainers = with maintainers; [ leenaars ];
     platforms = platforms.all;
+    broken = true;
   };
 }

@@ -14,7 +14,7 @@ with import ./release-lib.nix { inherit supportedSystems; };
     officialRelease = false;
   };
 
-} // (mapTestOn (rec {
+} // (mapTestOn ({
 
   aspell = all;
   at = linux;
@@ -156,13 +156,12 @@ with import ./release-lib.nix { inherit supportedSystems; };
   time = linux;
   tinycc = linux;
   udev = linux;
-  unar = linux;
   unzip = all;
   usbutils = linux;
   utillinux = linux;
   utillinuxMinimal = linux;
   w3m = all;
-  webkit = linux;
+  webkitgtk = linux;
   wget = all;
   which = all;
   wicd = linux;

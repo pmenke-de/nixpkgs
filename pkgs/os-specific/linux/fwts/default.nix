@@ -2,12 +2,12 @@
 , json_c, flex, bison, dtc, pciutils, dmidecode, iasl, libbsd }:
 
 stdenv.mkDerivation rec {
-  name = "fwts-${version}";
-  version = "18.12.00";
+  pname = "fwts";
+  version = "20.03.00";
 
   src = fetchzip {
-    url = "http://fwts.ubuntu.com/release/fwts-V${version}.tar.gz";
-    sha256 = "10kzn5r099i4b8m5l7s68fs885d126l9cingq9gj1g574c18hg2s";
+    url = "http://fwts.ubuntu.com/release/${pname}-V${version}.tar.gz";
+    sha256 = "0h56lclvs8l5jf6zh790ki9k4mp9r8sqv2pynnciqlkz8nj71qah";
     stripRoot = false;
   };
 

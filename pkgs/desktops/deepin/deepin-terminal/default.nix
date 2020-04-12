@@ -1,28 +1,37 @@
-{ stdenv, fetchurl, fetchFromGitHub, pkgconfig, cmake, ninja, vala,
-  gettext, gobject-introspection, at-spi2-core, dbus, epoxy, expect,
-  gtk3, json-glib, libXdmcp, libgee, libpthreadstubs, librsvg,
-  libsecret, libtasn1, libxcb, libxkbcommon, p11-kit, pcre, vte, wnck,
-  deepin-menu, deepin-shortcut-viewer, deepin }:
+{ stdenv, fetchFromGitHub, pkgconfig, cmake, ninja, vala_0_40, fetchpatch,
+  gettext, at-spi2-core, dbus, epoxy, expect, gtk3, json-glib,
+  libXdmcp, libgee, libpthreadstubs, librsvg, libsecret, libtasn1,
+  libxcb, libxkbcommon, p11-kit, pcre, vte, wnck, libselinux, gnutls, pcre2,
+  libsepol, utillinux, deepin-menu, deepin-shortcut-viewer, deepin, wrapGAppsHook }:
 
 stdenv.mkDerivation rec {
-  name = "${pname}-${version}";
   pname = "deepin-terminal";
-  version = "3.0.10.2";
+  version = "5.0.0";
 
   src = fetchFromGitHub {
     owner = "linuxdeepin";
     repo = "deepin-terminal";
     rev = version;
-    sha256 = "0ylhp8q9kfdq9l69drawjaf0q8vcqyflb2a3zfnwbnf06dlpvkz6";
+    sha256 = "1929saj828b438d07caw3cjhqq60v6gni7mi3fqrg9wdjz81xwv7";
   };
+
+  patches = [
+    # Fix build with VTE 0.60
+    (fetchpatch {
+      url = "https://github.com/linuxdeepin/deepin-terminal/commit/542d1035b609698ee81aa7971d20ca8e5930743d.patch";
+      sha256 = "1pihiy70yc25fm5fx7i7v9gmi65v4mhldvi7xwv8rgr2z6hbfj41";
+    })
+  ];
 
   nativeBuildInputs = [
     pkgconfig
     cmake
     ninja
-    vala
+    vala_0_40 # xcb.vapi:411.3-411.48: error: missing return statement at end of subroutine body
     gettext
-    gobject-introspection # For setup hook
+    libselinux libsepol utillinux # required by gio
+    deepin.setupHook
+    wrapGAppsHook
   ];
 
   buildInputs = [
@@ -46,24 +55,30 @@ stdenv.mkDerivation rec {
     pcre
     vte
     wnck
+    gnutls
+    pcre2
   ];
 
   postPatch = ''
-    patchShebangs .
+    searchHardCodedPaths
   '';
 
-  enableParallelBuilding = true;
+  cmakeFlags = [
+    "-DTEST_BUILD=OFF"
+    "-DUSE_VENDOR_LIB=OFF"
+    "-DVERSION=${version}"
+  ];
 
-  passthru.updateScript = deepin.updateScript { inherit name; };
+  passthru.updateScript = deepin.updateScript { name = "${pname}-${version}"; };
 
   meta = with stdenv.lib; {
-    description = "The default terminal emulation for Deepin";
+    description = "Default terminal emulator for Deepin";
     longDescription = ''
       Deepin terminal, it sharpens your focus in the world of command line!
       It is an advanced terminal emulator with workspace, multiple
       windows, remote management, quake mode and other features.
      '';
-    homepage = https://github.com/linuxdeepin/deepin-terminal;
+    homepage = "https://github.com/linuxdeepin/deepin-terminal";
     license = licenses.gpl3;
     platforms = platforms.linux;
     maintainers = [ maintainers.romildo ];

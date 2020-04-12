@@ -1,25 +1,24 @@
 { stdenv, fetchurl, makeWrapper
-, coreutils, jdk, rlwrap, gnupg1compat }:
+, coreutils, jdk, rlwrap, gnupg }:
 
 stdenv.mkDerivation rec {
   pname = "leiningen";
-  version = "2.8.3";
-  name = "${pname}-${version}";
+  version = "2.9.1";
 
   src = fetchurl {
     url = "https://raw.github.com/technomancy/leiningen/${version}/bin/lein-pkg";
-    sha256 = "1jbrm4vdvwskbi9sxvn6i7h2ih9c3nfld63nx58nblghvlcb9vwx";
+    sha256 = "1h0gpzpr7xk6hvmrrq41bcp2k9aai348baf8ad9bxvci01n4zb12";
   };
 
   jarsrc = fetchurl {
     # NOTE: This is actually a .jar, Github has issues
-    url = "https://github.com/technomancy/leiningen/releases/download/${version}/${name}-standalone.zip";
-    sha256 = "07kb7d84llp24l959gndnfmislnnvgpsxghmgfdy8chy7g4sy2kz";
+    url = "https://github.com/technomancy/leiningen/releases/download/${version}/${pname}-${version}-standalone.zip";
+    sha256 = "1y2mva5s2w2szzn1b9rhz0dvkffls4ravii677ybcf2w9wd86z7a";
   };
 
-  JARNAME = "${name}-standalone.jar";
+  JARNAME = "${pname}-${version}-standalone.jar";
 
-  unpackPhase = "true";
+  dontUnpack = true;
 
   buildInputs = [ makeWrapper ];
   propagatedBuildInputs = [ jdk ];
@@ -29,7 +28,6 @@ stdenv.mkDerivation rec {
 
   installPhase = ''
     mkdir -p $out/bin $out/share
-
     cp -v $src $out/bin/lein
     cp -v $jarsrc $out/share/$JARNAME
   '';
@@ -37,18 +35,16 @@ stdenv.mkDerivation rec {
   fixupPhase = ''
     chmod +x $out/bin/lein
     patchShebangs $out/bin/lein
-
     substituteInPlace $out/bin/lein \
       --replace 'LEIN_JAR=/usr/share/java/leiningen-$LEIN_VERSION-standalone.jar' "LEIN_JAR=$out/share/$JARNAME"
-
     wrapProgram $out/bin/lein \
       --prefix PATH ":" "${stdenv.lib.makeBinPath [ rlwrap coreutils ]}" \
-      --set LEIN_GPG ${gnupg1compat}/bin/gpg \
+      --set LEIN_GPG ${gnupg}/bin/gpg \
       --set JAVA_CMD ${jdk}/bin/java
   '';
 
   meta = {
-    homepage = https://leiningen.org/;
+    homepage = "https://leiningen.org/";
     description = "Project automation for Clojure";
     license = stdenv.lib.licenses.epl10;
     platforms = stdenv.lib.platforms.linux ++ stdenv.lib.platforms.darwin;

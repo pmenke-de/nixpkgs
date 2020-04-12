@@ -1,29 +1,49 @@
-{ cmake, fetchurl, python, stdenv }:
+{ stdenv
+, cmake
+, fetchurl
+, python
+, openblas
+, gfortran
+, lapackSupport ? true }:
 
-stdenv.mkDerivation rec {
+let openblas32 = openblas.override { blas64 = false; };
 
+in stdenv.mkDerivation rec {
   pname = "sundials";
-  version = "4.0.1";
-  name = "${pname}-${version}";
+  version = "5.1.0";
+
+  buildInputs = [ python ] ++ stdenv.lib.optionals (lapackSupport) [ gfortran openblas32 ];
+  nativeBuildInputs = [ cmake ];
 
   src = fetchurl {
     url = "https://computation.llnl.gov/projects/${pname}/download/${pname}-${version}.tar.gz";
-    sha256 = "1m5f2glxmgc6imjr0yqqp448r8q3kvsfp8dxxn83k00fcb40kr19";
+    sha256 = "08cvzmbr2qc09ayq4f5j07lw97hl06q4dl26vh4kh822mm7x28pv";
   };
 
-  preConfigure = ''
-    export cmakeFlags="-DCMAKE_INSTALL_PREFIX=$out -DEXAMPLES_INSTALL_PATH=$out/share/examples $cmakeFlags"
-  '';
-  
-  nativeBuildInputs = [ cmake ];
-  buildInputs = [ python ];
+  patches = [
+    (fetchurl {
+      # https://github.com/LLNL/sundials/pull/19
+      url = "https://github.com/LLNL/sundials/commit/1350421eab6c5ab479de5eccf6af2dcad1eddf30.patch";
+      sha256 = "0g67lixp9m85fqpb9rzz1hl1z8ibdg0ldwq5z6flj5zl8a7cw52l";
+    })
+  ];
+
+  cmakeFlags = [
+    "-DEXAMPLES_INSTALL_PATH=${placeholder "out"}/share/examples"
+  ] ++ stdenv.lib.optionals (lapackSupport) [
+    "-DSUNDIALS_INDEX_TYPE=int32_t"
+    "-DLAPACK_ENABLE=ON"
+    "-DLAPACK_LIBRARIES=${openblas32}/lib/libopenblas${stdenv.hostPlatform.extensions.sharedLibrary}"
+  ];
+
+  doCheck = true;
+  checkPhase = "make test";
 
   meta = with stdenv.lib; {
     description = "Suite of nonlinear differential/algebraic equation solvers";
-    homepage    = https://computation.llnl.gov/projects/sundials;
+    homepage    = "https://computation.llnl.gov/projects/sundials";
     platforms   = platforms.all;
-    maintainers = [ maintainers.idontgetoutmuch ];
+    maintainers = with maintainers; [ flokli idontgetoutmuch ];
     license     = licenses.bsd3;
   };
-
 }

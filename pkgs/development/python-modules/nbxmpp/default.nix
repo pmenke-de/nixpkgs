@@ -2,16 +2,16 @@
 
 let
   pname = "nbxmpp";
-  version = "0.6.8";
+  version = "0.6.10";
   name = "${pname}-${version}";
-in buildPythonPackage rec {
+in buildPythonPackage {
   inherit pname version;
   # Tests aren't included in PyPI tarball.
   src = fetchzip {
     name = "${name}.tar.bz2";
     url = "https://dev.gajim.org/gajim/python-nbxmpp/repository/archive.tar.bz2?"
         + "ref=${name}";
-    sha256 = "09zrqz01j45kvayfscd66avkrnn237lbjg9li5hjhyw92h6hkkc4";
+    sha256 = "1w31a747mj9rvlp3n20z0fnvyvihphkgkyr22sk2kap3migw8vai";
   };
 
   propagatedBuildInputs = [ pyopenssl ];

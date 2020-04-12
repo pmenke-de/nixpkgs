@@ -4,7 +4,7 @@
 }:
 
 buildGoPackage rec {
-  name = "impl-unstable-${version}";
+  pname = "impl-unstable";
   version = "2018-02-27";
   rev = "3d0f908298c49598b6aa84f101c69670e15d1d03";
 
@@ -22,7 +22,7 @@ buildGoPackage rec {
 
   meta = with lib; {
     description = "impl generates method stubs for implementing an interface.";
-    homepage = https://github.com/josharian/impl;
+    homepage = "https://github.com/josharian/impl";
     license = licenses.mit;
     maintainers = with maintainers; [ kalbasit ];
     platforms = platforms.linux ++ platforms.darwin;

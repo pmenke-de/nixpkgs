@@ -1,30 +1,58 @@
 { stdenv, fetchgit, pkgconfig, attr, libuuid, libscrypt, libsodium, keyutils
-, liburcu, zlib, libaio, zstd, lz4 }:
+, liburcu, zlib, libaio, zstd, lz4, valgrind, python3Packages
+, fuseSupport ? false, fuse3 ? null }:
 
-stdenv.mkDerivation rec {
+assert fuseSupport -> fuse3 != null;
+
+stdenv.mkDerivation {
   pname = "bcachefs-tools";
-  version = "2019-01-13";
+  version = "2020-04-04";
 
   src = fetchgit {
     url = "https://evilpiepirate.org/git/bcachefs-tools.git";
-    rev = "47bd483d27ec13418978b24ec5951661d564ba35";
-    sha256 = "0h0mi68f8hxjplh0f8yw9h1ax9y6cz9c9hlvl95nqhs352lkdrfj";
+    rev = "5d6e237b728cfb7c3bf2cb1a613e64bdecbd740d";
+    sha256 = "1syym9k3njb0bk2mg6832cbf6r42z6y8b6hjv7dg4gmv2h7v7l7g";
   };
 
-  enableParallelBuilding = true;
-  nativeBuildInputs = [ pkgconfig ];
-  buildInputs = [ attr libuuid libscrypt libsodium keyutils liburcu zlib libaio zstd lz4 ];
-  installFlags = [ "PREFIX=${placeholder "out"}" ];
-  
-  preInstall = ''
+  postPatch = ''
     substituteInPlace Makefile \
+      --replace "pytest-3" "pytest --verbose" \
       --replace "INITRAMFS_DIR=/etc/initramfs-tools" \
                 "INITRAMFS_DIR=${placeholder "out"}/etc/initramfs-tools"
   '';
 
+  enableParallelBuilding = true;
+
+  nativeBuildInputs = [
+    pkgconfig
+  ];
+
+  buildInputs = [
+    libuuid libscrypt libsodium keyutils liburcu zlib libaio
+    zstd lz4 python3Packages.pytest
+  ] ++ stdenv.lib.optional fuseSupport fuse3;
+
+  doCheck = true;
+
+  checkFlags = [
+    "BCACHEFS_TEST_USE_VALGRIND=no"
+  ];
+
+  checkInputs = [
+    valgrind
+  ];
+
+  preCheck = stdenv.lib.optionalString fuseSupport ''
+    rm tests/test_fuse.py
+  '';
+
+  installFlags = [
+    "PREFIX=${placeholder "out"}"
+  ];
+
   meta = with stdenv.lib; {
     description = "Tool for managing bcachefs filesystems";
-    homepage = https://bcachefs.org/;
+    homepage = "https://bcachefs.org/";
     license = licenses.gpl2;
     maintainers = with maintainers; [ davidak chiiruno ];
     platforms = platforms.linux;

@@ -1,18 +1,17 @@
-{ stdenv, lib, fetchFromGitHub, cmake, pkgconfig
+{ stdenv, mkDerivation, lib, fetchzip, cmake, pkgconfig
 , alsaLib, freetype, libjack2, lame, libogg, libpulseaudio, libsndfile, libvorbis
 , portaudio, portmidi, qtbase, qtdeclarative, qtscript, qtsvg, qttools
 , qtwebengine, qtxmlpatterns
 }:
 
-stdenv.mkDerivation rec {
-  name = "musescore-${version}";
-  version = "3.0";
+mkDerivation rec {
+  pname = "musescore";
+  version = "3.4.2";
 
-  src = fetchFromGitHub {
-    owner  = "musescore";
-    repo   = "MuseScore";
-    rev    = "v${version}";
-    sha256 = "0g8n8xpw5d6wh8bwbvy12sinl9i0ir009sr28i4izr28lr4x8v50";
+  src = fetchzip {
+    url = "https://github.com/musescore/MuseScore/releases/download/v${version}/MuseScore-${version}.zip";
+    sha256 = "1laskvp40dncs12brkgvk7wl0qrvzy52rn7nf3b67ps1vmd130gp";
+    stripRoot = false;
   };
 
   patches = [
@@ -32,10 +31,10 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Music notation and composition software";
-    homepage = https://musescore.org/;
+    homepage = "https://musescore.org/";
     license = licenses.gpl2;
     maintainers = with maintainers; [ vandenoever ];
     platforms = platforms.linux;
-    repositories.git = https://github.com/musescore/MuseScore;
+    repositories.git = "https://github.com/musescore/MuseScore";
   };
 }

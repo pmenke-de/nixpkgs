@@ -2,21 +2,27 @@
 
 python3.pkgs.buildPythonApplication rec {
   pname = "homeassistant-cli";
-  version = "0.3.0";
+  version = "0.8.0";
 
   src = python3.pkgs.fetchPypi {
     inherit pname version;
-    sha256 = "42d7cb008801d7a448b62aed1fc46dd450ee67397bf16faabb02f691417db4b2";
+    sha256 = "0qq42b2a0rlrzaxwf3zqks5gzgv0hf4pz4yjjl6ldnizw8fcj40n";
   };
 
   postPatch = ''
     # Ignore pinned versions
-    sed -i "s/'\(.*\)==.*'/'\1'/g" setup.py
+    sed -i "s/'\(.*\)\(==\|>=\).*'/'\1'/g" setup.py
   '';
 
   propagatedBuildInputs = with python3.pkgs; [
-    requests pyyaml netdisco click click-log tabulate idna jsonpath_rw jinja2
+    requests netdisco click click-log tabulate jsonpath_rw jinja2 dateparser regex ruamel_yaml aiohttp
   ];
+
+  postInstall = ''
+    mkdir -p "$out/share/bash-completion/completions" "$out/share/zsh/site-functions"
+    $out/bin/hass-cli completion bash > "$out/share/bash-completion/completions/hass-cli"
+    $out/bin/hass-cli completion zsh > "$out/share/zsh/site-functions/_hass-cli"
+  '';
 
   checkInputs = with python3.pkgs; [
     pytest requests-mock
@@ -27,8 +33,8 @@ python3.pkgs.buildPythonApplication rec {
   '';
 
   meta = with lib; {
-    description = "Command-line tool for Home Asssistant";
-    homepage = https://github.com/home-assistant/home-assistant-cli;
+    description = "Command-line tool for Home Assistant";
+    homepage = "https://github.com/home-assistant/home-assistant-cli";
     license = licenses.asl20;
     maintainers = with maintainers; [ dotlambda ];
   };

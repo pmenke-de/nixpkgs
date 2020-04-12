@@ -39,8 +39,8 @@ let
   ];
 
 in buildGoPackage rec {
-  name = "gometalinter-${version}";
-  version = "2.0.11";
+  pname = "gometalinter";
+  version = "3.0.0";
 
   goPackagePath = "github.com/alecthomas/gometalinter";
   excludedPackages = "\\(regressiontests\\)";
@@ -49,7 +49,7 @@ in buildGoPackage rec {
     owner = "alecthomas";
     repo = "gometalinter";
     rev = "v${version}";
-    sha256 = "08p7bwvhpgizif8qi59m8mm3mcny70x9msbk8m8vjpphsq55wha4";
+    sha256 = "06dd60531qp0hxfwnxnyi36d6div1j781jvcb99ykhgrg0kwmzq9";
   };
 
   postInstall = ''
@@ -62,9 +62,9 @@ in buildGoPackage rec {
 
   meta = with lib; {
     description = "Concurrently run Go lint tools and normalise their output";
-    homepage = https://github.com/alecthomas/gometalinter;
+    homepage = "https://github.com/alecthomas/gometalinter";
     license = licenses.mit;
-    maintainers = with maintainers; [ kalbasit ];
+    maintainers = with maintainers; [ kalbasit rvolosatovs ];
     platforms = platforms.linux ++ platforms.darwin;
   };
 }

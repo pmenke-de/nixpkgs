@@ -3,7 +3,7 @@
 
 stdenv.mkDerivation rec {
   version = "5.2.1";
-  name = "superlu-${version}";
+  pname = "superlu";
 
   src = fetchurl {
     url = "http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_${version}.tar.gz";
@@ -28,8 +28,8 @@ stdenv.mkDerivation rec {
   checkTarget = "test";
 
   meta = {
-    homepage = http://crd-legacy.lbl.gov/~xiaoye/SuperLU/;
-    license = http://crd-legacy.lbl.gov/~xiaoye/SuperLU/License.txt;
+    homepage = "http://crd-legacy.lbl.gov/~xiaoye/SuperLU/";
+    license = "http://crd-legacy.lbl.gov/~xiaoye/SuperLU/License.txt";
     description = "A library for the solution of large, sparse, nonsymmetric systems of linear equations";
     platforms = stdenv.lib.platforms.unix;
   };

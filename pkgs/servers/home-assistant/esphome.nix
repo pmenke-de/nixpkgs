@@ -1,43 +1,61 @@
-{ lib, python3, fetchpatch, substituteAll, platformio, esptool }:
+{ lib, python3, platformio, esptool, git, protobuf3_10, fetchpatch }:
 
-python3.pkgs.buildPythonApplication rec {
-  pname = "esphomeyaml";
-  version = "1.10.1";
-
-  src = python3.pkgs.fetchPypi {
-    inherit pname version;
-    sha256 = "426cd545b4e9505ce5b4f5c63d2d54cb038f93fe3ba9d4d56b6b6431b222485d";
+let
+  python = python3.override {
+    packageOverrides = self: super: {
+      protobuf = super.protobuf.override {
+        protobuf = protobuf3_10;
+      };
+      pyyaml = super.pyyaml.overridePythonAttrs (oldAttrs: rec {
+        version = "5.1.2";
+        src = oldAttrs.src.override {
+          inherit version;
+          sha256 = "1r5faspz73477hlbjgilw05xsms0glmsa371yqdd26znqsvg1b81";
+        };
+      });
+    };
   };
 
-  patches = [
-    (substituteAll {
-      src = ./dont-import-platformio-esptool.patch;
-      inherit platformio esptool;
-    })
-  ];
+in python.pkgs.buildPythonApplication rec {
+  pname = "esphome";
+  version = "1.14.3";
 
-  postPatch = ''
-     # typing is part of the standard library since Python 3.5
-     substituteInPlace setup.py --replace "'typing>=3.0.0'," ""
-  '';
+  src = python.pkgs.fetchPypi {
+    inherit pname version;
+    sha256 = "0xnsl000c5a2li9qw9anrzzq437qn1n4hcfc24i4rfq37awzmig7";
+  };
 
-  propagatedBuildInputs = with python3.pkgs; [
+  ESPHOME_USE_SUBPROCESS = "";
+
+  propagatedBuildInputs = with python.pkgs; [
     voluptuous pyyaml paho-mqtt colorlog
-    tornado protobuf tzlocal pyserial
+    tornado protobuf tzlocal pyserial ifaddr
+    protobuf
   ];
 
-  checkPhase = ''
-    $out/bin/esphomeyaml tests/test1.yaml compile
-    $out/bin/esphomeyaml tests/test2.yaml compile
+  # remove all version pinning (E.g tornado==5.1.1 -> tornado)
+  postPatch = ''
+    sed -i -e "s/==[0-9.]*//" setup.py
   '';
+
+  makeWrapperArgs = [
+    # platformio is used in esphomeyaml/platformio_api.py
+    # esptool is used in esphomeyaml/__main__.py
+    # git is used in esphomeyaml/writer.py
+    "--prefix PATH : ${lib.makeBinPath [ platformio esptool git ]}"
+    "--set ESPHOME_USE_SUBPROCESS ''"
+  ];
 
   # Platformio will try to access the network
-  doCheck = false;
+  # Instead, run the executable
+  checkPhase = ''
+    $out/bin/esphome --help > /dev/null
+  '';
 
   meta = with lib; {
     description = "Make creating custom firmwares for ESP32/ESP8266 super easy";
-    homepage = https://esphomelib.com/esphomeyaml;
+    homepage = "https://esphome.io/";
     license = licenses.mit;
-    maintainers = with maintainers; [ dotlambda ];
+    maintainers = with maintainers; [ dotlambda globin ];
   };
 }

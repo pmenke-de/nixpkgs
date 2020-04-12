@@ -1,14 +1,16 @@
-{ fetchurl, stdenv, substituteAll, meson, ninja, pkgconfig, gnome3, glib, gtk, gsettings-desktop-schemas
+{ fetchurl, stdenv, substituteAll, meson, ninja, pkgconfig, gnome3, glib, gtk3, gsettings-desktop-schemas
 , gnome-desktop, dbus, json-glib, libICE, xmlto, docbook_xsl, docbook_xml_dtd_412, python3
 , libxslt, gettext, makeWrapper, systemd, xorg, epoxy, gnugrep, bash }:
 
 stdenv.mkDerivation rec {
-  name = "gnome-session-${version}";
-  version = "3.30.1";
+  pname = "gnome-session";
+  version = "3.36.0";
+
+  outputs = ["out" "sessions"];
 
   src = fetchurl {
-    url = "mirror://gnome/sources/gnome-session/${stdenv.lib.versions.majorMinor version}/${name}.tar.xz";
-    sha256 = "0fbpq103md4g9gi67rxnwvha21629nxx7qazddy6q6494sbqbzpa";
+    url = "mirror://gnome/sources/gnome-session/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
+    sha256 = "0ymvf1bap35348rpjqp63qwnwnnawdwi4snch95zc4n832w3hjym";
   };
 
   patches = [
@@ -30,7 +32,7 @@ stdenv.mkDerivation rec {
   ];
 
   buildInputs = [
-    glib gtk libICE gnome-desktop json-glib xorg.xtrans gnome3.defaultIconTheme
+    glib gtk3 libICE gnome-desktop json-glib xorg.xtrans gnome3.adwaita-icon-theme
     gnome3.gnome-settings-daemon gsettings-desktop-schemas systemd epoxy
   ];
 
@@ -50,16 +52,26 @@ stdenv.mkDerivation rec {
       --suffix XDG_CONFIG_DIRS : "${gnome3.gnome-settings-daemon}/etc/xdg"
   '';
 
+  # We move the GNOME sessions to another output since gnome-session is a dependency of
+  # GDM itself. If we do not hide them, it will show broken GNOME sessions when GDM is
+  # enabled without proper GNOME installation.
+  postInstall = ''
+    mkdir $sessions
+    moveToOutput share/wayland-sessions "$sessions"
+    moveToOutput share/xsessions "$sessions"
+  '';
+
   passthru = {
     updateScript = gnome3.updateScript {
       packageName = "gnome-session";
       attrPath = "gnome3.gnome-session";
     };
+    providedSessions = [ "gnome" "gnome-xorg" ];
   };
 
   meta = with stdenv.lib; {
     description = "GNOME session manager";
-    homepage = https://wiki.gnome.org/Projects/SessionManagement;
+    homepage = "https://wiki.gnome.org/Projects/SessionManagement";
     license = licenses.gpl2Plus;
     maintainers = gnome3.maintainers;
     platforms = platforms.linux;

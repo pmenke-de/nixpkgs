@@ -10,14 +10,14 @@
 buildPythonPackage rec {
 
   pname = "peewee";
-  version = "3.8.1";
+  version = "3.11.2";
 
   # pypi release does not provide tests
   src = fetchFromGitHub {
     owner = "coleifer";
     repo = pname;
     rev = version;
-    sha256 = "0z6fdihmvqfg0ysa94g4w2w7146fsi2gnrgh90b4i1s3wj8iaxqy";
+    sha256 = "097cafqgk46bf0innwm7xnmsfs6z37hv3alyvrfz6d0iy4scshm5";
   };
 
 
@@ -40,7 +40,7 @@ buildPythonPackage rec {
 
   meta = with stdenv.lib;{
     description = "a small, expressive orm";
-    homepage    = http://peewee-orm.com;
+    homepage    = "http://peewee-orm.com";
     license     = licenses.mit;
   };
 }

@@ -1,57 +1,38 @@
-{ stdenv, fetchFromGitHub, fetchpatch, meson, ninja, pkgconfig
-, wayland, libGL, wayland-protocols, libinput, libxkbcommon, pixman
-, xcbutilwm, libX11, libcap, xcbutilimage, xcbutilerrors, mesa_noglu
+{ stdenv, fetchFromGitHub, meson, ninja, pkg-config, wayland
+, libGL, wayland-protocols, libinput, libxkbcommon, pixman
+, xcbutilwm, libX11, libcap, xcbutilimage, xcbutilerrors, mesa
 , libpng, ffmpeg_4
 }:
 
-let
+stdenv.mkDerivation rec {
   pname = "wlroots";
-  version = "0.2";
-in stdenv.mkDerivation rec {
-  name = "${pname}-${version}";
+  version = "0.10.1";
 
   src = fetchFromGitHub {
     owner = "swaywm";
     repo = "wlroots";
     rev = version;
-    sha256 = "0gfxawjlb736xl90zfv3n6zzf5n1cacgzflqi1zq1wn7wd3j6ppv";
+    sha256 = "0j2lh9vc92zhn44rjbia5aw3y1rpgfng1x1h17lcvj5m4i6vj0pc";
   };
 
-  postPatch = ''
-    substituteInPlace meson.build \
-      --replace "version: '0.1.0'" "version: '${version}.0'"
-  '';
+  # $out for the library and $examples for the example programs (in examples):
+  outputs = [ "out" "examples" ];
 
-  # $out for the library, $bin for rootston, and $examples for the example
-  # programs (in examples) AND rootston
-  outputs = [ "out" "bin" "examples" ];
-
-  nativeBuildInputs = [ meson ninja pkgconfig ];
+  nativeBuildInputs = [ meson ninja pkg-config wayland ];
 
   buildInputs = [
-    wayland libGL wayland-protocols libinput libxkbcommon pixman
-    xcbutilwm libX11 libcap xcbutilimage xcbutilerrors mesa_noglu
+    libGL wayland-protocols libinput libxkbcommon pixman
+    xcbutilwm libX11 libcap xcbutilimage xcbutilerrors mesa
     libpng ffmpeg_4
   ];
 
-  mesonFlags = [
-    "-Dlibcap=enabled" "-Dlogind=enabled" "-Dxwayland=enabled" "-Dx11-backend=enabled"
-    "-Dxcb-icccm=enabled" "-Dxcb-errors=enabled"
-  ];
-
   postInstall = ''
-    # Install rootston (the reference compositor) to $bin and $examples
-    for output in "$bin" "$examples"; do
-      mkdir -p $output/bin
-      cp rootston/rootston $output/bin/
-      mkdir $output/lib
-      cp libwlroots* $output/lib/
-      patchelf \
-        --set-rpath "$output/lib:${stdenv.lib.makeLibraryPath buildInputs}" \
-        $output/bin/rootston
-      mkdir $output/etc
-      cp ../rootston/rootston.ini.example $output/etc/rootston.ini
-    done
+    # Copy the library to $examples
+    mkdir -p $examples/lib
+    cp -P libwlroots* $examples/lib/
+  '';
+
+  postFixup = ''
     # Install ALL example programs to $examples:
     # screencopy dmabuf-capture input-inhibitor layer-shell idle-inhibit idle
     # screenshot output-layout multi-pointer rotation tablet touch pointer
@@ -59,16 +40,18 @@ in stdenv.mkDerivation rec {
     mkdir -p $examples/bin
     cd ./examples
     for binary in $(find . -executable -type f -printf '%P\n' | grep -vE '\.so'); do
-      patchelf \
-        --set-rpath "$examples/lib:${stdenv.lib.makeLibraryPath buildInputs}" \
-        "$binary"
       cp "$binary" "$examples/bin/wlroots-$binary"
     done
   '';
 
   meta = with stdenv.lib; {
     description = "A modular Wayland compositor library";
+    longDescription = ''
+      Pluggable, composable, unopinionated modules for building a Wayland
+      compositor; or about 50,000 lines of code you were going to write anyway.
+    '';
     inherit (src.meta) homepage;
+    changelog = "https://github.com/swaywm/wlroots/releases/tag/${version}";
     license     = licenses.mit;
     platforms   = platforms.linux;
     maintainers = with maintainers; [ primeos ];

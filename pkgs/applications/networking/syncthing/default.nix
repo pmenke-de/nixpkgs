@@ -1,19 +1,19 @@
-{ buildGoPackage, fetchpatch, stdenv, lib, procps, fetchFromGitHub }:
+{ buildGoModule, stdenv, lib, procps, fetchFromGitHub }:
 
 let
   common = { stname, target, postInstall ? "" }:
-    buildGoPackage rec {
-      version = "1.0.0";
+    buildGoModule rec {
+      version = "1.4.2";
       name = "${stname}-${version}";
 
       src = fetchFromGitHub {
         owner  = "syncthing";
         repo   = "syncthing";
         rev    = "v${version}";
-        sha256 = "1qkjnij9jw3d4pjkdr6npz5ps604qg6g36jnsng0k1r2qnrydnwh";
+        sha256 = "0pfzpbdir2agwsyfjh1rxlyyd225xmyrr4k2g4vlg5r12kpcjwya";
       };
 
-      goPackagePath = "github.com/syncthing/syncthing";
+      modSha256 = "0qjhb55nd8mlnswbk8bgl2sb9angmv8fnympmmyqj1dqa7lcs87z";
 
       patches = [
         ./add-stcli-target.patch
@@ -23,24 +23,20 @@ let
 
       buildPhase = ''
         runHook preBuild
-        pushd go/src/${goPackagePath}
         go run build.go -no-upgrade -version v${version} build ${target}
-        popd
         runHook postBuild
       '';
 
       installPhase = ''
-        pushd go/src/${goPackagePath}
         runHook preInstall
-        install -Dm755 ${target} $bin/bin/${target}
+        install -Dm755 ${target} $out/bin/${target}
         runHook postInstall
-        popd
       '';
 
       inherit postInstall;
 
       meta = with lib; {
-        homepage = https://www.syncthing.net/;
+        homepage = "https://www.syncthing.net/";
         description = "Open Source Continuous File Synchronization";
         license = licenses.mpl20;
         maintainers = with maintainers; [ pshendry joko peterhoeg andrew-d ];

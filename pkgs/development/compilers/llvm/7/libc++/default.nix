@@ -1,9 +1,11 @@
-{ lib, stdenv, fetch, cmake, python, libcxxabi, fixDarwinDylibNames, version }:
+{ lib, stdenv, fetch, cmake, python3, libcxxabi, fixDarwinDylibNames, version
+, enableShared ? ! stdenv.hostPlatform.isMusl }:
 
-stdenv.mkDerivation rec {
-  name = "libc++-${version}";
+stdenv.mkDerivation {
+  pname = "libc++";
+  inherit version;
 
-  src = fetch "libcxx" "1wdrxg365ig0kngx52pd0n820sncp24blb0zpalc579iidhh4002";
+  src = fetch "libcxx" "0kmhcapm2cjwalyiqasj9dmqbw59mcwdl8fgl951wg7ax84b8hj4";
 
   postUnpack = ''
     unpackFile ${libcxxabi.src}
@@ -22,7 +24,7 @@ stdenv.mkDerivation rec {
   '' + lib.optionalString stdenv.hostPlatform.isMusl ''
     patchShebangs utils/cat_files.py
   '';
-  nativeBuildInputs = [ cmake ] ++ stdenv.lib.optional stdenv.hostPlatform.isMusl python;
+  nativeBuildInputs = [ cmake ] ++ stdenv.lib.optional stdenv.hostPlatform.isMusl python3;
 
   buildInputs = [ libcxxabi ] ++ lib.optional stdenv.isDarwin fixDarwinDylibNames;
 
@@ -30,16 +32,12 @@ stdenv.mkDerivation rec {
     "-DLIBCXX_LIBCXXABI_LIB_PATH=${libcxxabi}/lib"
     "-DLIBCXX_LIBCPPABI_VERSION=2"
     "-DLIBCXX_CXX_ABI=libcxxabi"
-  ] ++ stdenv.lib.optional stdenv.hostPlatform.isMusl "-DLIBCXX_HAS_MUSL_LIBC=1";
+  ] ++ stdenv.lib.optional stdenv.hostPlatform.isMusl "-DLIBCXX_HAS_MUSL_LIBC=1"
+  ++ stdenv.lib.optional (!enableShared) "-DLIBCXX_ENABLE_SHARED=OFF" ;
 
   enableParallelBuilding = true;
 
   linkCxxAbi = stdenv.isLinux;
-
-  postInstall = ''
-    mv $out/lib/libc++.a $out/lib/libc++_static.a
-    cp ${./libc++.a} $out/lib/libc++.a
-  '';
 
   setupHooks = [
     ../../../../../build-support/setup-hooks/role.bash
@@ -47,7 +45,7 @@ stdenv.mkDerivation rec {
   ];
 
   meta = {
-    homepage = http://libcxx.llvm.org/;
+    homepage = "http://libcxx.llvm.org/";
     description = "A new implementation of the C++ standard library, targeting C++11";
     license = with stdenv.lib.licenses; [ ncsa mit ];
     platforms = stdenv.lib.platforms.unix;

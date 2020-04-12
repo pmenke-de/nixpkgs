@@ -1,8 +1,22 @@
-{ stdenv, fetchFromGitHub, fetchpatch, gfortran, perl, which, config, coreutils
+{ stdenv, fetchFromGitHub, perl, which
 # Most packages depending on openblas expect integer width to match
 # pointer width, but some expect to use 32-bit integers always
 # (for compatibility with reference BLAS).
 , blas64 ? null
+# Multi-threaded applications must not call a threaded OpenBLAS
+# (the only exception is when an application uses OpenMP as its
+# *only* form of multi-threading). See
+#     https://github.com/xianyi/OpenBLAS/wiki/Faq/4bded95e8dc8aadc70ce65267d1093ca7bdefc4c#multi-threaded
+#     https://github.com/xianyi/OpenBLAS/issues/2543
+# This flag builds a single-threaded OpenBLAS using the flags
+# stated in thre.
+, singleThreaded ? false
+, buildPackages
+# Select a specific optimization target (other than the default)
+# See https://github.com/xianyi/OpenBLAS/blob/develop/TargetList.txt
+, target ? null
+, enableStatic ? false
+, enableShared ? true
 }:
 
 with stdenv.lib;
@@ -10,57 +24,52 @@ with stdenv.lib;
 let blas64_ = blas64; in
 
 let
+  setTarget = x: if target == null then x else target;
+
   # To add support for a new platform, add an element to this set.
   configs = {
     armv6l-linux = {
-      BINARY = "32";
-      TARGET = "ARMV6";
-      DYNAMIC_ARCH = "0";
-      CC = "gcc";
-      USE_OPENMP = "1";
+      BINARY = 32;
+      TARGET = setTarget "ARMV6";
+      DYNAMIC_ARCH = false;
+      USE_OPENMP = true;
     };
 
     armv7l-linux = {
-      BINARY = "32";
-      TARGET = "ARMV7";
-      DYNAMIC_ARCH = "0";
-      CC = "gcc";
-      USE_OPENMP = "1";
+      BINARY = 32;
+      TARGET = setTarget "ARMV7";
+      DYNAMIC_ARCH = false;
+      USE_OPENMP = true;
     };
 
     aarch64-linux = {
-      BINARY = "64";
-      TARGET = "ARMV8";
-      DYNAMIC_ARCH = "1";
-      CC = "gcc";
-      USE_OPENMP = "1";
+      BINARY = 64;
+      TARGET = setTarget "ARMV8";
+      DYNAMIC_ARCH = true;
+      USE_OPENMP = true;
     };
 
     i686-linux = {
-      BINARY = "32";
-      TARGET = "P2";
-      DYNAMIC_ARCH = "1";
-      CC = "gcc";
-      USE_OPENMP = "1";
+      BINARY = 32;
+      TARGET = setTarget "P2";
+      DYNAMIC_ARCH = true;
+      USE_OPENMP = true;
     };
 
     x86_64-darwin = {
-      BINARY = "64";
-      TARGET = "ATHLON";
-      DYNAMIC_ARCH = "1";
-      # Note that clang is available through the stdenv on OSX and
-      # thus is not an explicit dependency.
-      CC = "clang";
-      USE_OPENMP = "0";
+      BINARY = 64;
+      TARGET = setTarget "ATHLON";
+      DYNAMIC_ARCH = true;
+      USE_OPENMP = false;
       MACOSX_DEPLOYMENT_TARGET = "10.7";
     };
 
     x86_64-linux = {
-      BINARY = "64";
-      TARGET = "ATHLON";
-      DYNAMIC_ARCH = "1";
-      CC = "gcc";
-      USE_OPENMP = "1";
+      BINARY = 64;
+      TARGET = setTarget "ATHLON";
+      DYNAMIC_ARCH = true;
+      NO_AVX512 = true;
+      USE_OPENMP = !stdenv.hostPlatform.isMusl;
     };
   };
 in
@@ -76,27 +85,26 @@ let
     if blas64_ != null
       then blas64_
       else hasPrefix "x86_64" stdenv.hostPlatform.system;
+  # Convert flag values to format OpenBLAS's build expects.
+  # `toString` is almost what we need other than bools,
+  # which we need to map {true -> 1, false -> 0}
+  # (`toString` produces empty string `""` for false instead of `0`)
+  mkMakeFlagValue = val:
+    if !builtins.isBool val then toString val
+    else if val then "1" else "0";
+  mkMakeFlagsFromConfig = mapAttrsToList (var: val: "${var}=${mkMakeFlagValue val}");
 in
 stdenv.mkDerivation rec {
-  name = "openblas-${version}";
-  version = "0.3.4";
+  pname = "openblas";
+  version = "0.3.8";
   src = fetchFromGitHub {
     owner = "xianyi";
     repo = "OpenBLAS";
     rev = "v${version}";
-    sha256 = "1jdq4msfyg13pdmwwfqpixf4fshss68qzls820lmn0i6y7h4aix3";
+    sha256 = "0s017qqi4n6jzrxl9cyx625wj26smnyn5g8s699s7h8v1srlrw6p";
   };
 
   inherit blas64;
-
-  patches = [
-    # Fixes build on x86_64-darwin. See:
-    # https://github.com/xianyi/OpenBLAS/issues/1926
-    (fetchpatch {
-      url = https://github.com/xianyi/OpenBLAS/commit/701ea88347461e4c5d896765438dc870281b3834.patch;
-      sha256 = "18rcfgkjsijl9d2510jn961wqvz7zdlz2fgy1yjmax29kvv8fqd9";
-    })
-  ];
 
   # Some hardening features are disabled due to sporadic failures in
   # OpenBLAS-based programs. The problem may not be with OpenBLAS itself, but
@@ -113,19 +121,45 @@ stdenv.mkDerivation rec {
     "relro" "bindnow"
   ];
 
-  nativeBuildInputs =
-    [gfortran perl which]
-    ++ optionals stdenv.isDarwin [coreutils];
+  nativeBuildInputs = [
+    perl
+    which
+  ];
 
-  makeFlags =
-    [
-      "FC=gfortran"
-      ''PREFIX="''$(out)"''
-      "NUM_THREADS=64"
-      "INTERFACE64=${if blas64 then "1" else "0"}"
-      "NO_STATIC=1"
-    ] ++ stdenv.lib.optional (stdenv.hostPlatform.libc == "musl") "NO_AFFINITY=1"
-    ++ mapAttrsToList (var: val: var + "=" + val) config;
+  depsBuildBuild = [
+    buildPackages.gfortran
+    buildPackages.stdenv.cc
+  ];
+
+  # Disable an optimisation which seems to cause issues, pending an
+  # upstream fix: https://github.com/xianyi/OpenBLAS/issues/2496
+  patches = stdenv.lib.optionals stdenv.hostPlatform.isAarch64 [
+    ./0001-Disable-optimised-aarch64-dgemm_beta-pending-fix.patch
+  ];
+
+  makeFlags = mkMakeFlagsFromConfig (config // {
+    FC = "${stdenv.cc.targetPrefix}gfortran";
+    CC = "${stdenv.cc.targetPrefix}${if stdenv.cc.isClang then "clang" else "cc"}";
+    PREFIX = placeholder "out";
+    NUM_THREADS = 64;
+    INTERFACE64 = blas64;
+    NO_STATIC = !enableStatic;
+    NO_SHARED = !enableShared;
+    CROSS = stdenv.hostPlatform != stdenv.buildPlatform;
+    HOSTCC = "cc";
+    # Makefile.system only checks defined status
+    # This seems to be a bug in the openblas Makefile:
+    # on x86_64 it expects NO_BINARY_MODE=
+    # but on aarch64 it expects NO_BINARY_MODE=0
+    NO_BINARY_MODE = if stdenv.isx86_64
+        then toString (stdenv.hostPlatform != stdenv.buildPlatform)
+        else stdenv.hostPlatform != stdenv.buildPlatform;
+  } // (stdenv.lib.optionalAttrs singleThreaded {
+    # As described on https://github.com/xianyi/OpenBLAS/wiki/Faq/4bded95e8dc8aadc70ce65267d1093ca7bdefc4c#multi-threaded
+    USE_THREAD = false;
+    USE_LOCKING = true; # available with openblas >= 0.3.7
+    USE_OPENMP = false; # openblas will refuse building with both USE_OPENMP=1 and USE_THREAD=0
+  }));
 
   doCheck = true;
   checkTarget = "tests";
@@ -147,7 +181,7 @@ EOF
   meta = with stdenv.lib; {
     description = "Basic Linear Algebra Subprograms";
     license = licenses.bsd3;
-    homepage = https://github.com/xianyi/OpenBLAS;
+    homepage = "https://github.com/xianyi/OpenBLAS";
     platforms = platforms.unix;
     maintainers = with maintainers; [ ttuegel ];
   };

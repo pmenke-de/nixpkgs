@@ -1,32 +1,37 @@
-{ mkDerivation, lib, fetchFromGitHub, cmake, python3, qtbase, qtquickcontrols2, curaengine }:
+{ mkDerivation, lib, fetchFromGitHub, cmake, python3, qtbase, qtquickcontrols2, qtgraphicaleffects, curaengine, plugins ? [] }:
 
 mkDerivation rec {
-  name = "cura-${version}";
-  version = "3.6.0";
+  pname = "cura";
+  version = "4.5.0";
 
   src = fetchFromGitHub {
     owner = "Ultimaker";
     repo = "Cura";
     rev = version;
-    sha256 = "0wzkbqdd1670smw1vnq634rkpcjwnhwcvimhvjq904gy2fylgr90";
+    sha256 = "0fm04s912sgmr66wyb55ly4jh39ijsj6lx4fx9wn7hchlqmw5jxi";
   };
 
   materials = fetchFromGitHub {
     owner = "Ultimaker";
     repo = "fdm_materials";
     rev = version;
-    sha256 = "0g2dkph0ll7d9109n17vmfwb4fpc8lhyb1z1q68j8vblyvg08d12";
+    sha256 = "0fgkwz1anw49macq1jxjhjr79slhmx7g3zwij7g9fqyzzhrrmwqn";
   };
 
-  buildInputs = [ qtbase qtquickcontrols2 ];
+  buildInputs = [ qtbase qtquickcontrols2 qtgraphicaleffects ];
   propagatedBuildInputs = with python3.pkgs; [
     libsavitar numpy-stl pyserial requests uranium zeroconf
-  ];
+  ] ++ plugins;
   nativeBuildInputs = [ cmake python3.pkgs.wrapPython ];
 
   cmakeFlags = [
     "-DURANIUM_DIR=${python3.pkgs.uranium.src}"
     "-DCURA_VERSION=${version}"
+  ];
+
+  makeWrapperArgs = [
+    # hacky workaround for https://github.com/NixOS/nixpkgs/issues/59901
+    "--set OMP_NUM_THREADS 1"
   ];
 
   postPatch = ''
@@ -37,17 +42,22 @@ mkDerivation rec {
   postInstall = ''
     mkdir -p $out/share/cura/resources/materials
     cp ${materials}/*.fdm_material $out/share/cura/resources/materials/
+    mkdir -p $out/lib/cura/plugins
+    for plugin in ${toString plugins}; do
+      ln -s $plugin/lib/cura/plugins/* $out/lib/cura/plugins
+    done
   '';
 
   postFixup = ''
     wrapPythonPrograms
+    wrapQtApp $out/bin/cura
   '';
 
   meta = with lib; {
     description = "3D printer / slicing GUI built on top of the Uranium framework";
-    homepage = https://github.com/Ultimaker/Cura;
+    homepage = "https://github.com/Ultimaker/Cura";
     license = licenses.lgpl3Plus;
     platforms = platforms.linux;
-    maintainers = with maintainers; [ abbradar ];
+    maintainers = with maintainers; [ abbradar gebner ];
   };
 }

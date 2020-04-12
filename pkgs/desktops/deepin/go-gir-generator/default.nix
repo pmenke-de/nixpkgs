@@ -1,23 +1,23 @@
-{ stdenv, fetchFromGitHub, pkgconfig, go, gobject-introspection,
-  libgudev, deepin, fetchurl }:
+{ stdenv, fetchpatch, fetchFromGitHub, pkgconfig, go, gobject-introspection,
+  libgudev, deepin }:
 
 stdenv.mkDerivation rec {
-  name = "${pname}-${version}";
   pname = "go-gir-generator";
-  version = "1.1.0";
+  version = "2.0.2";
 
   src = fetchFromGitHub {
     owner = "linuxdeepin";
     repo = pname;
     rev = version;
-    sha256 = "0grp4ffy3vmlknzmymnxq1spwshff2ylqsw82pj4y2v2fcvnqfvb";
+    sha256 = "1ydzll8zlk897iqcihvv6p046p0rzr4qqz2drmz2nx95njp8n03a";
   };
 
   patches = [
-    # fix: dde-api build error with gobject-introspection 1.58+
-    (fetchurl {
-      url = https://github.com/linuxdeepin/go-gir-generator/commit/a7ab229201e28d1be727f5021b3588fa4a1acf5f.patch;
-      sha256 = "13ywalwkjg8wwvd0pvmc2rv1h38airyvimdn9jfb5wis9xm48401";
+    # Fix compatibility with glib 2.63+
+    # https://github.com/linuxdeepin/go-gir-generator/pull/11
+    (fetchpatch {
+      url = "https://github.com/linuxdeepin/go-gir-generator/commit/7dea15a1a491f28d2ac8c411068ccefeba01aae3.patch";
+      sha256 = "7bn/mtruCcK+AIXMzhN2e3o7CuzuJ3mtTz0HOTEYTaA=";
     })
   ];
 
@@ -36,15 +36,15 @@ stdenv.mkDerivation rec {
   '';
 
   makeFlags = [
-    "PREFIX=$(out)"
-    "GOCACHE=off"
+    "PREFIX=${placeholder "out"}"
+    "GOCACHE=$(TMPDIR)/go-cache"
   ];
 
-  passthru.updateScript = deepin.updateScript { inherit name; };
+  passthru.updateScript = deepin.updateScript { name = "${pname}-${version}"; };
 
   meta = with stdenv.lib; {
     description = "Generate static golang bindings for GObject";
-    homepage = https://github.com/linuxdeepin/go-gir-generator;
+    homepage = "https://github.com/linuxdeepin/go-gir-generator";
     license = licenses.gpl3;
     platforms = platforms.linux;
     maintainers = with maintainers; [ romildo ];

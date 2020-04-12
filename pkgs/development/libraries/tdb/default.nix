@@ -1,32 +1,42 @@
-{ stdenv, fetchurl, python2, pkgconfig, readline, libxslt
-, docbook_xsl, docbook_xml_dtd_42, buildPackages
+{ stdenv
+, fetchurl
+, pkg-config
+, wafHook
+, python3
+, readline
+, libxslt
+, docbook-xsl-nons
+, docbook_xml_dtd_45
 }:
 
 stdenv.mkDerivation rec {
-  name = "tdb-1.3.16";
+  pname = "tdb";
+  version = "1.4.3";
 
   src = fetchurl {
-    url = "mirror://samba/tdb/${name}.tar.gz";
-    sha256 = "1ibcz466xwk1x6xvzlgzd5va4lyrjzm3rnjak29kkwk7cmhw4gva";
+    url = "mirror://samba/tdb/${pname}-${version}.tar.gz";
+    sha256 = "06waz0k50c7v3chd08mzp2rv7w4k4q9isbxx3vhlfpx1vy9q61f8";
   };
 
-  nativeBuildInputs = [ pkgconfig python2 ];
-  buildInputs = [
-    readline libxslt docbook_xsl docbook_xml_dtd_42
+  nativeBuildInputs = [
+    pkg-config
+    wafHook
+    libxslt
+    docbook-xsl-nons
+    docbook_xml_dtd_45
   ];
 
-  preConfigure = ''
-    patchShebangs buildtools/bin/waf
-  '';
+  buildInputs = [
+    python3
+    readline # required to build python
+  ];
 
-  configureFlags = [
+  wafPath = "buildtools/bin/waf";
+
+  wafConfigureFlags = [
     "--bundled-libraries=NONE"
     "--builtin-libraries=replace"
-  ] ++ stdenv.lib.optionals (stdenv.hostPlatform != stdenv.buildPlatform) [
-    "--cross-compile"
-    "--cross-execute=${stdenv.hostPlatform.emulator buildPackages}"
   ];
-  configurePlatforms = [ ];
 
   meta = with stdenv.lib; {
     description = "The trivial database";
@@ -36,9 +46,8 @@ stdenv.mkDerivation rec {
       and uses locking internally to keep writers from trampling on each
       other. TDB is also extremely small.
     '';
-    homepage = https://tdb.samba.org/;
+    homepage = "https://tdb.samba.org/";
     license = licenses.lgpl3Plus;
-    maintainers = with maintainers; [ wkennington ];
     platforms = platforms.all;
   };
 }

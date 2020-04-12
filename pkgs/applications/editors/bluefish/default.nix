@@ -11,12 +11,12 @@ stdenv.mkDerivation rec {
   };
 
   nativeBuildInputs = [ intltool pkgconfig wrapGAppsHook ];
-  buildInputs = [ gnome3.defaultIconTheme gtk libxml2
+  buildInputs = [ gnome3.adwaita-icon-theme gtk libxml2
     enchant gucharmap python ];
 
   meta = with stdenv.lib; {
     description = "A powerful editor targeted towards programmers and webdevelopers";
-    homepage = http://bluefish.openoffice.nl/;
+    homepage = "http://bluefish.openoffice.nl/";
     license = licenses.gpl3Plus;
     maintainers = [maintainers.vbgl];
     platforms = platforms.all;

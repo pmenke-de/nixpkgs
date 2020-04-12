@@ -1,40 +1,40 @@
-{ stdenv, fetchurl, substituteAll, pkgconfig, libxslt, which, libX11, gnome3, gtk3, glib
-, gettext, libxml2, xkeyboard_config, isocodes, itstool, wayland
-, libseccomp, bubblewrap, gobject-introspection, gtk-doc, docbook_xsl }:
+{ stdenv, fetchurl, substituteAll, pkgconfig, libxslt, ninja, libX11, gnome3, gtk3, glib
+, gettext, libxml2, xkeyboard_config, isocodes, meson, wayland
+, libseccomp, systemd, bubblewrap, gobject-introspection, gtk-doc, docbook_xsl, gsettings-desktop-schemas }:
 
 stdenv.mkDerivation rec {
-  name = "gnome-desktop-${version}";
-  version = "3.30.2";
+  pname = "gnome-desktop";
+  version = "3.36.1";
 
   outputs = [ "out" "dev" "devdoc" ];
 
   src = fetchurl {
-    url = "mirror://gnome/sources/gnome-desktop/${stdenv.lib.versions.majorMinor version}/${name}.tar.xz";
-    sha256 = "0k6iccfj9naw42dl2mgljfvk12dmvg06plg86qd81nksrf9ycxal";
+    url = "mirror://gnome/sources/gnome-desktop/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
+    sha256 = "1058h1ndl6pmlh8rmbqq5lw15glws3anin88cm7lw4vzasgfavwc";
   };
 
-  enableParallelBuilding = true;
-
   nativeBuildInputs = [
-    pkgconfig which itstool gettext libxslt libxml2 gobject-introspection
-    gtk-doc docbook_xsl
+    pkgconfig meson ninja gettext libxslt libxml2 gobject-introspection
+    gtk-doc docbook_xsl glib
   ];
   buildInputs = [
     libX11 bubblewrap xkeyboard_config isocodes wayland
-    gtk3 glib libseccomp
+    gtk3 glib libseccomp systemd
   ];
 
-  propagatedBuildInputs = [ gnome3.gsettings-desktop-schemas ];
+  propagatedBuildInputs = [ gsettings-desktop-schemas ];
 
   patches = [
     (substituteAll {
       src = ./bubblewrap-paths.patch;
       bubblewrap_bin = "${bubblewrap}/bin/bwrap";
+      inherit (builtins) storeDir;
     })
   ];
 
-  configureFlags = [
-    "--enable-gtk-doc"
+  mesonFlags = [
+    "-Dgtk_doc=true"
+    "-Ddesktop_docs=false"
   ];
 
   passthru = {

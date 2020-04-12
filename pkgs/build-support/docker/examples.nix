@@ -87,9 +87,10 @@ rec {
   # 4. example of pulling an image. could be used as a base for other images
   nixFromDockerHub = pullImage {
     imageName = "nixos/nix";
-    imageDigest = "sha256:20d9485b25ecfd89204e843a962c1bd70e9cc6858d65d7f5fadc340246e2116b";
-    sha256 = "0mqjy3zq2v6rrhizgb9nvhczl87lcfphq9601wcprdika2jz7qh8";
-    finalImageTag = "1.11";
+    imageDigest = "sha256:85299d86263a3059cf19f419f9d286cc9f06d3c13146a8ebbb21b3437f598357";
+    sha256 = "07q9y9r7fsd18sy95ybrvclpkhlal12d30ybnf089hq7v1hgxbi7";
+    finalImageTag = "2.2.1";
+    finalImageName = "nix";
   };
 
   # 5. example of multiple contents, emacs and vi happily coexisting
@@ -116,7 +117,12 @@ rec {
       pkgs.nix
     ];
     config = {
-      Env = [ "NIX_PAGER=cat" ];
+      Env = [
+        "NIX_PAGER=cat"
+        # A user is required by nix
+        # https://github.com/NixOS/nix/blob/9348f9291e5d9e4ba3c4347ea1b235640f54fd79/src/libutil/util.cc#L478
+        "USER=nobody"
+      ];
     };
   };
 
@@ -185,5 +191,93 @@ rec {
     tag = "latest";
     runAsRoot = "touch /example-file";
     fromImage = bash;
+  };
+
+  # 13. example of 3 layers images This image is used to verify the
+  # order of layers is correct.
+  # It allows to validate
+  # - the layer of parent are below
+  # - the order of parent layer is preserved at image build time
+  #   (this is why there are 3 images)
+  layersOrder = let
+    l1 = pkgs.dockerTools.buildImage {
+      name = "l1";
+      tag = "latest";
+      extraCommands = ''
+        mkdir -p tmp
+        echo layer1 > tmp/layer1
+        echo layer1 > tmp/layer2
+        echo layer1 > tmp/layer3
+      '';
+    };
+    l2 = pkgs.dockerTools.buildImage {
+      name = "l2";
+      fromImage = l1;
+      tag = "latest";
+      extraCommands = ''
+        mkdir -p tmp
+        echo layer2 > tmp/layer2
+        echo layer2 > tmp/layer3
+      '';
+    };
+  in pkgs.dockerTools.buildImage {
+    name = "l3";
+    fromImage = l2;
+    tag = "latest";
+    contents = [ pkgs.coreutils ];
+    extraCommands = ''
+      mkdir -p tmp
+      echo layer3 > tmp/layer3
+    '';
+  };
+
+  # 14. Create another layered image, for comparing layers with image 10.
+  another-layered-image = pkgs.dockerTools.buildLayeredImage {
+    name = "another-layered-image";
+    tag = "latest";
+    config.Cmd = [ "${pkgs.hello}/bin/hello" ];
+  };
+
+  # 15. Create a layered image with only 2 layers
+  two-layered-image = pkgs.dockerTools.buildLayeredImage {
+    name = "two-layered-image";
+    tag = "latest";
+    config.Cmd = [ "${pkgs.hello}/bin/hello" ];
+    contents = [ pkgs.bash pkgs.hello ];
+    maxLayers = 2;
+  };
+
+  # 16. Create a layered image with more packages than max layers.
+  # coreutils and hello are part of the same layer
+  bulk-layer = pkgs.dockerTools.buildLayeredImage {
+    name = "bulk-layer";
+    tag = "latest";
+    contents = with pkgs; [
+      coreutils hello
+    ];
+    maxLayers = 2;
+  };
+
+  # 17. Create a "layered" image without nix store layers. This is not
+  # recommended, but can be useful for base images in rare cases.
+  no-store-paths = pkgs.dockerTools.buildLayeredImage {
+    name = "no-store-paths";
+    tag = "latest";
+    extraCommands = ''
+      chmod a+w bin
+
+      # This removes sharing of busybox and is not recommended. We do this
+      # to make the example suitable as a test case with working binaries.
+      cp -r ${pkgs.pkgsStatic.busybox}/* .
+    '';
+    contents = [
+      # This layer has no dependencies and its symlinks will be dereferenced
+      # when creating the customization layer.
+      (pkgs.runCommand "layer-to-flatten" {} ''
+        mkdir -p $out/bin
+        ln -s /bin/true $out/bin/custom-true
+      ''
+      )
+    ];
   };
 }

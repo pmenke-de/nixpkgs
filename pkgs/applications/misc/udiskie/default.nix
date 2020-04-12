@@ -1,33 +1,40 @@
 { stdenv, fetchFromGitHub, asciidoc-full, gettext
-, gobject-introspection, gtk3, hicolor-icon-theme, libappindicator-gtk3, libnotify, librsvg
+, gobject-introspection, gtk3, libappindicator-gtk3, libnotify, librsvg
 , udisks2, wrapGAppsHook
-, buildPythonApplication
-, docopt
-, pygobject3
-, pyyaml
+, python3Packages
 }:
 
-buildPythonApplication rec {
-  name = "udiskie-${version}";
-  version = "1.7.5";
+python3Packages.buildPythonApplication rec {
+  pname = "udiskie";
+  version = "2.1.0";
 
   src = fetchFromGitHub {
     owner = "coldfix";
     repo = "udiskie";
     rev = version;
-    sha256 = "1mcdn8ha5d5nsmrzk6xnnsqrmk94rdrzym9sqm38zk5r8gpyl1k4";
+    sha256 = "1d8fz0jrnpgldvdwpl27az2kjhpbcjd8nqn3qc2v6682q12p3jqb";
   };
 
-  buildInputs = [
+  nativeBuildInputs = [
+    gettext
     asciidoc-full        # For building man page.
-    hicolor-icon-theme
+    gobject-introspection
     wrapGAppsHook
-    librsvg              # required for loading svg icons (udiskie uses svg icons)
   ];
 
-  propagatedBuildInputs = [
-    gettext gobject-introspection gtk3 libnotify docopt
-    pygobject3 pyyaml udisks2 libappindicator-gtk3
+  buildInputs = [
+    librsvg              # required for loading svg icons (udiskie uses svg icons)
+    gobject-introspection
+    libnotify
+    gtk3
+    udisks2
+    libappindicator-gtk3
+  ];
+
+  propagatedBuildInputs = with python3Packages; [
+    docopt
+    pygobject3
+    pyyaml
   ];
 
   postBuild = "make -C doc";
@@ -37,13 +44,19 @@ buildPythonApplication rec {
     cp -v doc/udiskie.8 $out/share/man/man8/
   '';
 
-  # tests require dbusmock
-  doCheck = false;
+  checkInputs = with python3Packages; [
+    nose
+    keyutils
+  ];
+
+  checkPhase = ''
+    nosetests
+  '';
 
   meta = with stdenv.lib; {
     description = "Removable disk automounter for udisks";
     license = licenses.mit;
-    homepage = https://github.com/coldfix/udiskie;
+    homepage = "https://github.com/coldfix/udiskie";
     maintainers = with maintainers; [ AndersonTorres ];
   };
 }

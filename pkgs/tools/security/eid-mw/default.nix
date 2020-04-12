@@ -3,14 +3,15 @@
 , gtk3, nssTools, pcsclite
 , libxml2, libproxy 
 , openssl, curl
-, makeWrapper }:
+, makeWrapper
+, substituteAll }:
 
 stdenv.mkDerivation rec {
-  name = "eid-mw-${version}";
-  version = "4.4.13";
+  pname = "eid-mw";
+  version = "4.4.16";
 
   src = fetchFromGitHub {
-    sha256 = "14bgn2k0xbd6241qdghg787pgxy7k9rvcspaf74zwwyibaqknzyx"; 
+    sha256 = "1q82fw63xzrnrgh1wyh457hal6vfdl6swqfq7l6kviywiwlzx7kd"; 
     rev = "v${version}";
     repo = "eid-mw";
     owner = "Fedict";
@@ -32,8 +33,16 @@ stdenv.mkDerivation rec {
 
   configureFlags = [ "--enable-dialogs=yes" ];
 
-  postInstall = ''
-    install -D ${./eid-nssdb.in} $out/bin/eid-nssdb
+  postInstall =
+  let
+    eid-nssdb-in = substituteAll {
+      inherit (stdenv) shell;
+      isExecutable = true;
+      src = ./eid-nssdb.in;
+    };
+  in
+  ''
+    install -D ${eid-nssdb-in} $out/bin/eid-nssdb
     substituteInPlace $out/bin/eid-nssdb \
       --replace "modutil" "${nssTools}/bin/modutil"
 
@@ -47,7 +56,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Belgian electronic identity card (eID) middleware";
-    homepage = http://eid.belgium.be/en/using_your_eid/installing_the_eid_software/linux/;
+    homepage = "http://eid.belgium.be/en/using_your_eid/installing_the_eid_software/linux/";
     license = licenses.lgpl3;
     longDescription = ''
       Allows user authentication and digital signatures with Belgian ID cards.

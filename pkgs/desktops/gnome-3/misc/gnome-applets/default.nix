@@ -12,13 +12,11 @@
 , libgtop
 , libnotify
 , upower
-, dbus-glib
 , wirelesstools
 , linuxPackages
 , adwaita-icon-theme
 , libgweather
 , gucharmap
-, gnome-settings-daemon
 , tracker
 , polkit
 , gnome3
@@ -26,13 +24,13 @@
 
 let
   pname = "gnome-applets";
-  version = "3.30.0";
+  version = "3.36.2";
 in stdenv.mkDerivation rec {
   name = "${pname}-${version}";
 
   src = fetchurl {
     url = "mirror://gnome/sources/${pname}/${stdenv.lib.versions.majorMinor version}/${name}.tar.xz";
-    sha256 = "1cvl32486kqw301wy40l1a1sdhanra7bx4smq0a3lmnl3x01zg43";
+    sha256 = "1hlblnajjkvlcd45lxfdxscx7j51nwyvri5jci6ylgpaxlwwm1s8";
   };
 
   nativeBuildInputs = [
@@ -52,11 +50,9 @@ in stdenv.mkDerivation rec {
     libgtop
     libnotify
     upower
-    dbus-glib
     adwaita-icon-theme
     libgweather
     gucharmap
-    gnome-settings-daemon
     tracker
     polkit
     wirelesstools
@@ -68,7 +64,7 @@ in stdenv.mkDerivation rec {
   doCheck = true;
 
   configureFlags = [
-    "--with-libpanel-applet-dir=$(out)/share/gnome-panel/applets"
+    "--with-libpanel-applet-dir=${placeholder "out"}/share/gnome-panel/applets"
   ];
 
   passthru = {
@@ -80,7 +76,7 @@ in stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Applets for use with the GNOME panel";
-    homepage = https://wiki.gnome.org/Projects/GnomeApplets;
+    homepage = "https://wiki.gnome.org/Projects/GnomeApplets";
     license = licenses.gpl2Plus;
     maintainers = gnome3.maintainers;
     platforms = platforms.linux;

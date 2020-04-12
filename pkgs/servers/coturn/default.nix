@@ -1,14 +1,14 @@
 { stdenv, fetchFromGitHub, openssl, libevent }:
 
 stdenv.mkDerivation rec {
-  name = "coturn-${version}";
-  version = "4.5.0.8";
+  pname = "coturn";
+  version = "4.5.1.1";
 
   src = fetchFromGitHub {
     owner = "coturn";
     repo = "coturn";
-    rev = "${version}";
-    sha256 = "1l2q76lzv2gff832wrqd9dcilyaqx91pixyz335822ypra89mdp8";
+    rev = version;
+    sha256 = "12x604lgva1d3g4wvl3f66rdj6lkjk5cqr0l3xas33xgzgm13pwr";
   };
 
   buildInputs = [ openssl libevent ];
@@ -16,7 +16,7 @@ stdenv.mkDerivation rec {
   patches = [ ./pure-configure.patch ];
 
   meta = with stdenv.lib; {
-    homepage = http://coturn.net/;
+    homepage = "https://coturn.net/";
     license = with licenses; [ bsd3 ];
     description = "A TURN server";
     platforms = platforms.all;

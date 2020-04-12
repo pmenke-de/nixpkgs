@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, python2Packages }:
+{ stdenv, fetchurl, python3Packages, gtk3, gobject-introspection, wrapGAppsHook, gnome3 }:
 
 #
 # TODO: Declare configuration options for the following optional dependencies:
@@ -7,22 +7,17 @@
 #  -  pyxdg: Need to make it work first (see setupPyInstallFlags).
 #
 
-python2Packages.buildPythonApplication rec {
+python3Packages.buildPythonApplication rec {
   name = "zim-${version}";
-  version = "0.69";
+  version = "0.72.1";
 
   src = fetchurl {
-    url = "http://zim-wiki.org/downloads/${name}.tar.gz";
-    sha256 = "1j04l1914iw87b0jd3r1czrh0q491fdgbqbi0biacxiri5q0i6a1";
+    url = "https://zim-wiki.org/downloads/${name}.tar.gz";
+    sha256 = "0a9h97rmp7if74p3i028cllzf9p9468psbqwcvm9009ga253dr1l";
   };
 
-  propagatedBuildInputs = with python2Packages; [ pyGtkGlade pyxdg pygobject2 ];
-
-  preBuild = ''
-    export HOME=$TMP
-
-    sed -i '/zim_install_class,/d' setup.py
-  '';
+  buildInputs = [ gtk3 gobject-introspection wrapGAppsHook gnome3.adwaita-icon-theme ];
+  propagatedBuildInputs = with python3Packages; [ pyxdg pygobject3 ];
 
 
   preFixup = ''
@@ -39,7 +34,7 @@ python2Packages.buildPythonApplication rec {
 
   meta = with stdenv.lib; {
     description = "A desktop wiki";
-    homepage = http://zim-wiki.org;
+    homepage = "http://zim-wiki.org";
     license = licenses.gpl2Plus;
     maintainers = with maintainers; [ pSub ];
     broken = stdenv.isDarwin; # https://github.com/NixOS/nixpkgs/pull/52658#issuecomment-449565790

@@ -4,14 +4,14 @@
 }:
 
 stdenv.mkDerivation rec {
-  name = "intel-vaapi-driver-${version}";
-  version = "2.3.0"; # generally try to match libva version, but not required
+  pname = "intel-vaapi-driver";
+  version = "2.4.0";
 
   src = fetchFromGitHub {
     owner  = "intel";
     repo   = "intel-vaapi-driver";
     rev    = version;
-    sha256 = "0s6cz9grymll96s7n2rpzvb3b566a2n21nfp6b23r926db089kjd";
+    sha256 = "019w0hvjc9l85yqhy01z2bvvljq208nkb43ai2v377l02krgcrbl";
   };
 
   patchPhase = ''
@@ -40,10 +40,10 @@ stdenv.mkDerivation rec {
   enableParallelBuilding = true;
 
   meta = with stdenv.lib; {
-    homepage = https://01.org/linuxmedia;
+    homepage = "https://01.org/linuxmedia";
     license = licenses.mit;
     description = "Intel driver for the VAAPI library";
     platforms = platforms.unix;
-    maintainers = with maintainers; [ garbas ];
+    maintainers = with maintainers; [ ];
   };
 }

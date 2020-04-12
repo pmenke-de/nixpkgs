@@ -5,12 +5,12 @@ let
 in
 
 stdenv.mkDerivation rec {
-  name = "sqlite-analyzer-${version}";
-  version = "3.26.0";
+  pname = "sqlite-analyzer";
+  version = "3.31.1";
 
   src = assert version == sqlite.version; fetchurl {
-    url = "https://sqlite.org/2018/sqlite-src-${archiveVersion version}.zip";
-    sha256 = "0ysgi2jrl348amdfifsl3cx90d04bijm4pn4xnvivmi3m1dq4hp0";
+    url = "https://sqlite.org/2020/sqlite-src-${archiveVersion version}.zip";
+    sha256 = "0n7f3w59gr80s6k4l5a9bp2s97dlfapfbhb3qdhak6axhn127p7j";
   };
 
   nativeBuildInputs = [ unzip ];
@@ -22,8 +22,8 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "A tool that shows statistics about SQLite databases";
-    downloadPage = http://sqlite.org/download.html;
-    homepage = http://www.sqlite.org;
+    downloadPage = "http://sqlite.org/download.html";
+    homepage = "https://www.sqlite.org";
     license = licenses.publicDomain;
     maintainers = with maintainers; [ pesterhazy ];
     platforms = platforms.unix;

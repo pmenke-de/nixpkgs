@@ -13,16 +13,16 @@ buildPythonPackage rec {
     substituteInPlace setup.py --replace "six==1.10.0" "six>=1.10.0"
   '';
 
-  # Do not test on Python 2 darwin because the tests suite gets stuck
-  # https://github.com/JBKahn/rednose/issues/23
-  doCheck = !(stdenv.isDarwin && isPy27);
+  # Do not test on Python 2 because the tests suite gets stuck
+  # https://github.com/NixOS/nixpkgs/issues/60786
+  doCheck = !(isPy27);
 
   checkInputs = [ six ];
   propagatedBuildInputs = [ nose colorama termstyle ];
 
   meta = with stdenv.lib; {
     description = "A python nose plugin adding color to console results";
-    homepage = https://github.com/JBKahn/rednose;
+    homepage = "https://github.com/JBKahn/rednose";
     license = licenses.mit;
   };
 }

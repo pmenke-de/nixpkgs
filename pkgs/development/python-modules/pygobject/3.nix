@@ -3,13 +3,13 @@ pycairo, cairo, which, ncurses, meson, ninja, isPy3k, gnome3 }:
 
 buildPythonPackage rec {
   pname = "pygobject";
-  version = "3.30.4";
+  version = "3.36.0";
 
   format = "other";
 
   src = fetchurl {
     url = "mirror://gnome/sources/${pname}/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    sha256 = "0hscyvr6hh8l90fyz97b9d03506g3r8s5hl1bgk5aadq8jja3h9d";
+    sha256 = "hoPS37W6qeUBqaZO66XCwRF+rbeBqxzXqdJVg0r22u8=";
   };
 
   outputs = [ "out" "dev" ];
@@ -18,7 +18,7 @@ buildPythonPackage rec {
     "-Dpython=python${if isPy3k then "3" else "2" }"
   ];
 
-  nativeBuildInputs = [ pkgconfig meson ninja ];
+  nativeBuildInputs = [ pkgconfig meson ninja gobject-introspection ];
   buildInputs = [ glib gobject-introspection ]
                  ++ stdenv.lib.optionals stdenv.isDarwin [ which ncurses ];
   propagatedBuildInputs = [ pycairo cairo ];
@@ -31,7 +31,7 @@ buildPythonPackage rec {
   };
 
   meta = with stdenv.lib; {
-    homepage = https://pygobject.readthedocs.io/;
+    homepage = "https://pygobject.readthedocs.io/";
     description = "Python bindings for Glib";
     license = licenses.gpl2;
     maintainers = with maintainers; [ jtojnar ];

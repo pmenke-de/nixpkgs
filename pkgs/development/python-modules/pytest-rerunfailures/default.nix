@@ -2,14 +2,14 @@
 
 buildPythonPackage rec {
   pname = "pytest-rerunfailures";
-  version = "6.0";
+  version = "8.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "978349ae00687504fd0f9d0970c37199ccd89cbdb0cb8c4ed7ee417ede582b40";
+    sha256 = "04p8rfvv7yi3gsdm1dw1mfhjwg6507rhgj7nbm5gfqw4kxmj7h8p";
   };
 
-  checkInputs = [ mock ];
+  checkInputs = [ mock pytest ];
 
   propagatedBuildInputs = [ pytest ];
 
@@ -19,8 +19,8 @@ buildPythonPackage rec {
 
   meta = with stdenv.lib; {
     description = "pytest plugin to re-run tests to eliminate flaky failures";
-    homepage = https://github.com/pytest-dev/pytest-rerunfailures;
+    homepage = "https://github.com/pytest-dev/pytest-rerunfailures";
     license = licenses.mpl20;
-    maintainers = with maintainers; [ jgeerds ];
+    maintainers = with maintainers; [ ];
   };
 }

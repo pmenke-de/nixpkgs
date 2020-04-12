@@ -7,9 +7,9 @@
 , fetchFromGitHub
 }:
 
-buildGoPackage rec {
-  name = "vgo2nix-${version}";
-  version = "unstable-2018-12-02";
+buildGoPackage {
+  pname = "vgo2nix";
+  version = "unstable-2019-02-06";
   goPackagePath = "github.com/adisbladis/vgo2nix";
 
   nativeBuildInputs = [ makeWrapper ];
@@ -17,8 +17,8 @@ buildGoPackage rec {
   src = fetchFromGitHub {
     owner = "adisbladis";
     repo = "vgo2nix";
-    rev = "b298f4fb799fc532488fc887e1938668d7f3d219";
-    sha256 = "0gr5vfz5wzpcyxsz948aniyfbryg53agvzbkhdnb5hiwhi7nay9p";
+    rev = "f2694cd352830f0561bc00bbcaa08cefb2e36439";
+    sha256 = "10cwi67cyhqjq1pwhry2n1v8z7wybl4cawzmjmfgs5mbsvqp0h78";
   };
 
   goDeps = ./deps.nix;
@@ -33,7 +33,7 @@ buildGoPackage rec {
 
   meta = with stdenv.lib; {
     description = "Convert go.mod files to nixpkgs buildGoPackage compatible deps.nix files";
-    homepage = https://github.com/adisbladis/vgo2nix;
+    homepage = "https://github.com/adisbladis/vgo2nix";
     license = licenses.mit;
     maintainers = with maintainers; [ adisbladis ];
   };

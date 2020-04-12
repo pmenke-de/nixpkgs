@@ -10,11 +10,11 @@
 
 buildPythonPackage rec {
   pname = "google-cloud-pubsub";
-  version = "0.38.0";
+  version = "1.1.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0b0481fa61faf8143c3cffc9d3fbe757423a200fbddddcf27feb2c49e3c35e58";
+    sha256 = "bdead87e40eba93043c6704578e946cf2794366312f936da0a2b3754234dde29";
   };
 
   checkInputs = [ pytest mock ];
@@ -26,7 +26,7 @@ buildPythonPackage rec {
 
   meta = with stdenv.lib; {
     description = "Google Cloud Pub/Sub API client library";
-    homepage = https://github.com/GoogleCloudPlatform/google-cloud-python;
+    homepage = "https://github.com/GoogleCloudPlatform/google-cloud-python";
     license = licenses.asl20;
     maintainers = [ maintainers.costrouc ];
   };

@@ -10,18 +10,26 @@
 , sqlite
 , tcl ? null, tk ? null, tix ? null, libX11 ? null, xorgproto ? null, x11Support ? false
 , zlib
-, callPackage
 , self
-, CF, configd
+, configd
 , python-setup-hook
 , nukeReferences
 # For the Python package set
 , packageOverrides ? (self: super: {})
 , buildPackages
+, pythonForBuild ? buildPackages.${"python${sourceVersion.major}${sourceVersion.minor}"}
 , sourceVersion
 , sha256
 , passthruFun
 , bash
+, stripConfig ? false
+, stripIdlelib ? false
+, stripTests ? false
+, stripTkinter ? false
+, rebuildBytecode ? true
+, stripBytecode ? false
+, includeSiteCustomize ? true
+, static ? false
 }:
 
 assert x11Support -> tcl != null
@@ -39,7 +47,7 @@ let
     executable = libPrefix;
     pythonVersion = with sourceVersion; "${major}.${minor}";
     sitePackages = "lib/${libPrefix}/site-packages";
-    inherit pythonForBuild;
+    inherit hasDistutilsCxxPatch pythonForBuild;
   };
 
   version = with sourceVersion; "${major}.${minor}.${patch}${suffix}";
@@ -51,14 +59,14 @@ let
     pythonForBuild
   ];
 
-  buildInputs = filter (p: p != null) [
+  buildInputs = filter (p: p != null) ([
     zlib bzip2 expat lzma libffi gdbm sqlite readline ncurses openssl ]
     ++ optionals x11Support [ tcl tk libX11 xorgproto ]
-    ++ optionals stdenv.isDarwin [ CF configd ];
+    ++ optionals stdenv.isDarwin [ configd ]);
 
   hasDistutilsCxxPatch = !(stdenv.cc.isGNU or false);
 
-  pythonForBuild = buildPackages.${"python${sourceVersion.major}${sourceVersion.minor}"};
+  inherit pythonForBuild;
 
   pythonForBuildInterpreter = if stdenv.hostPlatform == stdenv.buildPlatform then
     "$out/bin/python"
@@ -78,6 +86,8 @@ in with passthru; stdenv.mkDerivation {
   prePatch = optionalString stdenv.isDarwin ''
     substituteInPlace configure --replace '`/usr/bin/arch`' '"i386"'
     substituteInPlace configure --replace '-Wl,-stack_size,1000000' ' '
+  '' + optionalString (stdenv.isDarwin && x11Support) ''
+    substituteInPlace setup.py --replace /Library/Frameworks /no-such-path
   '';
 
   patches = [
@@ -87,24 +97,31 @@ in with passthru; stdenv.mkDerivation {
     # (since it will do a futile invocation of gcc (!) to find
     # libuuid, slowing down program startup a lot).
     (./. + "/${sourceVersion.major}.${sourceVersion.minor}/no-ldconfig.patch")
+  ] ++ optionals (isPy35 || isPy36) [
+    # Determinism: Write null timestamps when compiling python files.
+    ./3.5/force_bytecode_determinism.patch
   ] ++ optionals isPy35 [
     # Backports support for LD_LIBRARY_PATH from 3.6
     ./3.5/ld_library_path.patch
-  ] ++ optionals isPy37 [
+  ] ++ optionals (isPy37 || isPy38) [
     # Fix darwin build https://bugs.python.org/issue34027
-    (fetchpatch {
-      url = https://bugs.python.org/file47666/darwin-libutil.patch;
-      sha256 = "0242gihnw3wfskl4fydp2xanpl8k5q7fj4dp7dbbqf46a4iwdzpa";
-    })
+    ./3.7/darwin-libutil.patch
   ] ++ optionals (isPy3k && hasDistutilsCxxPatch) [
     # Fix for http://bugs.python.org/issue1222585
     # Upstream distutils is calling C compiler to compile C++ code, which
     # only works for GCC and Apple Clang. This makes distutils to call C++
     # compiler when needed.
-    (fetchpatch {
-      url = "https://bugs.python.org/file48016/python-3.x-distutils-C++.patch";
-      sha256 = "1h18lnpx539h5lfxyk379dxwr8m2raigcjixkf133l4xy3f4bzi2";
-    })
+    (
+      if isPy35 then
+        ./3.5/python-3.x-distutils-C++.patch
+      else if isPy37 || isPy38 then
+        ./3.7/python-3.x-distutils-C++.patch
+      else
+        fetchpatch {
+          url = "https://bugs.python.org/file48016/python-3.x-distutils-C++.patch";
+          sha256 = "1h18lnpx539h5lfxyk379dxwr8m2raigcjixkf133l4xy3f4bzi2";
+        }
+    )
   ];
 
   postPatch = ''
@@ -112,10 +129,10 @@ in with passthru; stdenv.mkDerivation {
     substituteInPlace "Lib/tkinter/tix.py" --replace "os.environ.get('TIX_LIBRARY')" "os.environ.get('TIX_LIBRARY') or '${tix}/lib'"
   '';
 
-  CPPFLAGS = "${concatStringsSep " " (map (p: "-I${getDev p}/include") buildInputs)}";
-  LDFLAGS = "${concatStringsSep " " (map (p: "-L${getLib p}/lib") buildInputs)}";
+  CPPFLAGS = concatStringsSep " " (map (p: "-I${getDev p}/include") buildInputs);
+  LDFLAGS = concatStringsSep " " (map (p: "-L${getLib p}/lib") buildInputs);
   LIBS = "${optionalString (!stdenv.isDarwin) "-lcrypt"} ${optionalString (ncurses != null) "-lncurses"}";
-  NIX_LDFLAGS = optionalString stdenv.isLinux "-lgcc_s";
+  NIX_LDFLAGS = optionalString (stdenv.isLinux && !stdenv.hostPlatform.isMusl) "-lgcc_s" + optionalString stdenv.hostPlatform.isMusl "-lgcc_eh";
   # Determinism: We fix the hashes of str, bytes and datetime objects.
   PYTHONHASHSEED=0;
 
@@ -125,6 +142,9 @@ in with passthru; stdenv.mkDerivation {
     "--without-ensurepip"
     "--with-system-expat"
     "--with-system-ffi"
+  ] ++ optionals (sqlite != null && isPy3k) [
+    "--enable-loadable-sqlite-extensions"
+  ] ++ optionals (openssl != null) [
     "--with-openssl=${openssl.dev}"
   ] ++ optionals (stdenv.hostPlatform != stdenv.buildPlatform) [
     "ac_cv_buggy_getaddrinfo=no"
@@ -151,7 +171,7 @@ in with passthru; stdenv.mkDerivation {
     # Never even try to use lchmod on linux,
     # don't rely on detecting glibc-isms.
     "ac_cv_func_lchmod=no"
-  ];
+  ] ++ optional static "LDFLAGS=-static";
 
   preConfigure = ''
     for i in /usr /sw /opt /pkg; do	# improve purity
@@ -161,8 +181,8 @@ in with passthru; stdenv.mkDerivation {
     export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -msse2"
     export MACOSX_DEPLOYMENT_TARGET=10.6
   '' + optionalString (isPy3k && pythonOlder "3.7") ''
-    # Determinism: The interpreter is patched to write null timestamps when compiling python files.
-    # This way python does not try to update them when we freeze timestamps in nix store.
+    # Determinism: The interpreter is patched to write null timestamps when compiling Python files
+    #   so Python doesn't try to update the bytecode when seeing frozen timestamps in Nix's store.
     export DETERMINISTIC_BUILD=1;
   '' + optionalString stdenv.hostPlatform.isMusl ''
     export NIX_CFLAGS_COMPILE+=" -DTHREAD_STACK_SIZE=0x100000"
@@ -187,9 +207,6 @@ in with passthru; stdenv.mkDerivation {
 
     ln -s "$out/include/${executable}m" "$out/include/${executable}"
 
-    # Python on Nix is not manylinux1 compatible. https://github.com/NixOS/nixpkgs/issues/18484
-    echo "manylinux1_compatible=False" >> $out/lib/${libPrefix}/_manylinux.py
-
     # Determinism: Windows installers were not deterministic.
     # We're also not interested in building Windows installers.
     find "$out" -name 'wininst*.exe' | xargs -r rm -f
@@ -209,8 +226,23 @@ in with passthru; stdenv.mkDerivation {
     done
 
     # Further get rid of references. https://github.com/NixOS/nixpkgs/issues/51668
-    find $out/lib/python*/config-* -type f -print -exec nuke-refs '{}' +
-    find $out/lib -name '_sysconfigdata*.py*' -print -exec nuke-refs '{}' +
+    find $out/lib/python*/config-* -type f -print -exec nuke-refs -e $out '{}' +
+    find $out/lib -name '_sysconfigdata*.py*' -print -exec nuke-refs -e $out '{}' +
+
+    '' + optionalString stripConfig ''
+    rm -R $out/bin/python*-config $out/lib/python*/config-*
+    '' + optionalString stripIdlelib ''
+    # Strip IDLE (and turtledemo, which uses it)
+    rm -R $out/bin/idle* $out/lib/python*/{idlelib,turtledemo}
+    '' + optionalString stripTkinter ''
+    rm -R $out/lib/python*/tkinter
+    '' + optionalString stripTests ''
+    # Strip tests
+    rm -R $out/lib/python*/test $out/lib/python*/**/test{,s}
+    '' + optionalString includeSiteCustomize ''
+    # Include a sitecustomize.py file
+    cp ${../sitecustomize.py} $out/${sitePackages}/sitecustomize.py
+    '' + optionalString rebuildBytecode ''
 
     # Determinism: rebuild all bytecode
     # We exclude lib2to3 because that's Python 2 code which fails
@@ -220,6 +252,8 @@ in with passthru; stdenv.mkDerivation {
     find $out -name "*.py" | ${pythonForBuildInterpreter}     -m compileall -q -f -x "lib2to3" -i -
     find $out -name "*.py" | ${pythonForBuildInterpreter} -O  -m compileall -q -f -x "lib2to3" -i -
     find $out -name "*.py" | ${pythonForBuildInterpreter} -OO -m compileall -q -f -x "lib2to3" -i -
+    '' + optionalString stripBytecode ''
+    find $out -type d -name __pycache__ -print0 | xargs -0 -I {} rm -rf "{}"
   '';
 
   preFixup = stdenv.lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
@@ -229,9 +263,9 @@ in with passthru; stdenv.mkDerivation {
 
   # Enforce that we don't have references to the OpenSSL -dev package, which we
   # explicitly specify in our configure flags above.
-  disallowedReferences = [
-    openssl.dev
-  ] ++ stdenv.lib.optionals (stdenv.hostPlatform != stdenv.buildPlatform) [
+  disallowedReferences =
+    stdenv.lib.optionals (openssl != null && !static) [ openssl.dev ]
+    ++ stdenv.lib.optionals (stdenv.hostPlatform != stdenv.buildPlatform) [
     # Ensure we don't have references to build-time packages.
     # These typically end up in shebangs.
     pythonForBuild buildPackages.bash
@@ -242,7 +276,7 @@ in with passthru; stdenv.mkDerivation {
   enableParallelBuilding = true;
 
   meta = {
-    homepage = http://python.org;
+    homepage = "http://python.org";
     description = "A high-level dynamically-typed programming language";
     longDescription = ''
       Python is a remarkably powerful dynamic programming language that

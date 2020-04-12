@@ -2,13 +2,13 @@
 
 buildPythonPackage rec {
   pname = "slixmpp";
-  version = "1.4.1";
+  version = "1.4.2";
 
   disabled = !isPy3k;
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "020acd4507fd00c38835b78b5f338db60d3df840187623e0d41ab2ca89d7ae57";
+    sha256 = "0rqpmscxjznxyz3dyxpc56gib319k01vl837r8g8w57dinz4y863";
   };
 
   patches = [
@@ -29,6 +29,6 @@ buildPythonPackage rec {
   meta = {
     description = "Elegant Python library for XMPP";
     license = lib.licenses.mit;
-    homepage = https://dev.louiz.org/projects/slixmpp;
+    homepage = "https://dev.louiz.org/projects/slixmpp";
   };
 }

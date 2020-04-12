@@ -1,9 +1,19 @@
 { fetchpatch }:
 
-rec {
+{
   bridge_stp_helper =
     { name = "bridge-stp-helper";
       patch = ./bridge-stp-helper.patch;
+    };
+
+  request_key_helper =
+    { name = "request-key-helper";
+      patch = ./request-key-helper.patch;
+    };
+
+  request_key_helper_updated =
+    { name = "request-key-helper-updated";
+      patch = ./request-key-helper-updated.patch;
     };
 
   p9_fixes =
@@ -23,7 +33,7 @@ rec {
 
   cpu-cgroup-v2 = import ./cpu-cgroup-v2-patches;
 
-  tag_hardened = rec {
+  tag_hardened = {
     name = "tag-hardened";
     patch = ./tag-hardened.patch;
   };
@@ -33,7 +43,7 @@ rec {
     name = "iwlwifi_mvm_support_version_7_scan_req_umac_fw_command";
     patch = fetchpatch {
       name = name + ".patch";
-      url = https://bugzilla.kernel.org/attachment.cgi?id=260597;
+      url = "https://bugzilla.kernel.org/attachment.cgi?id=260597";
       sha256 = "09096npxpgvlwdz3pb3m9brvxh7vy0xc9z9p8hh85xyczyzcsjhr";
     };
   };
@@ -43,7 +53,7 @@ rec {
     name = "xen-netfront_fix_mismatched_rtnl_unlock";
     patch = fetchpatch {
       name = name + ".patch";
-      url = https://github.com/torvalds/linux/commit/cb257783c2927b73614b20f915a91ff78aa6f3e8.patch;
+      url = "https://github.com/torvalds/linux/commit/cb257783c2927b73614b20f915a91ff78aa6f3e8.patch";
       sha256 = "0xhblx2j8wi3kpnfpgjjwlcwdry97ji2aaq54r3zirk5g5p72zs8";
     };
   };
@@ -53,27 +63,25 @@ rec {
     name = "xen-netfront_update_features_after_registering_netdev";
     patch = fetchpatch {
       name = name + ".patch";
-      url = https://github.com/torvalds/linux/commit/45c8184c1bed1ca8a7f02918552063a00b909bf5.patch;
+      url = "https://github.com/torvalds/linux/commit/45c8184c1bed1ca8a7f02918552063a00b909bf5.patch";
       sha256 = "1l8xq02rd7vakxg52xm9g4zng0ald866rpgm8kjlh88mwwyjkrwv";
     };
   };
 
-  # Reverts a change related to the overlayfs overhaul in 4.19
-  # https://github.com/NixOS/nixpkgs/issues/48828#issuecomment-445208626
-  revert-vfs-dont-open-real = rec {
-    name = "revert-vfs-dont-open-real";
-    patch = fetchpatch {
-      name = name + ".patch";
-      url = https://github.com/samueldr/linux/commit/ee23fa215caaa8102f4ab411d39fcad5858147f2.patch;
-      sha256 = "0bp4jryihg1y2sl8zlj6w7vvnxj0kmb6xdy42hpvdv43kb6ngiaq";
+  export_kernel_fpu_functions = {
+    "4.14" = {
+      name = "export_kernel_fpu_functions";
+      patch = ./export_kernel_fpu_functions_4_14.patch;
+    };
+    "5.3" = {
+      name = "export_kernel_fpu_functions";
+      patch = ./export_kernel_fpu_functions_5_3.patch;
     };
   };
 
-  raspberry_pi_wifi_fix = rec {
-    name = "raspberry-pi-wifi-fix";
-    patch = fetchpatch {
-      url = https://raw.githubusercontent.com/archlinuxarm/PKGBUILDs/730522ae76aa57b89fa317c5084613d3d50cf3b8/core/linux-aarch64/0005-mmc-sdhci-iproc-handle-mmc_of_parse-errors-during-pr.patch;
-      sha256 = "0gbfycky28vbdjgys1z71wl5q073dmbrkvbnr6693jsda3qhp6za";
-    };
+  # patches from https://lkml.org/lkml/2019/7/15/1748
+  mac_nvme_t2 = rec {
+    name = "mac_nvme_t2";
+    patch = ./mac-nvme-t2.patch;
   };
 }

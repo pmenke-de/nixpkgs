@@ -7,6 +7,11 @@ let
   };
 in
 nodePackages // {
+  "@angular/cli" = nodePackages."@angular/cli".override {
+    prePatch = ''
+      export NG_CLI_ANALYTICS=false
+    '';
+  };
   bower2nix = nodePackages.bower2nix.override {
     buildInputs = [ pkgs.makeWrapper ];
     postInstall = ''
@@ -21,7 +26,7 @@ nodePackages // {
   };
 
   dat = nodePackages.dat.override {
-    buildInputs = [ nodePackages.node-gyp-build ];
+    buildInputs = [ nodePackages.node-gyp-build pkgs.libtool pkgs.autoconf pkgs.automake ];
   };
 
   dnschain = nodePackages.dnschain.override {
@@ -30,6 +35,10 @@ nodePackages // {
       wrapProgram $out/bin/dnschain --suffix PATH : ${pkgs.openssl.bin}/bin
     '';
   };
+
+  bitwarden-cli = pkgs.lib.overrideDerivation nodePackages."@bitwarden/cli" (drv: {
+    name = "bitwarden-cli-${drv.version}";
+  });
 
   ios-deploy = nodePackages.ios-deploy.override (drv: {
     nativeBuildInputs = drv.nativeBuildInputs or [] ++ [ pkgs.buildPackages.rsync ];
@@ -53,6 +62,10 @@ nodePackages // {
     buildInputs = [ nodePackages.node-gyp-build ];
   };
 
+  insect = nodePackages.insect.override (drv: {
+    nativeBuildInputs = drv.nativeBuildInputs or [] ++ [ pkgs.psc-package pkgs.purescript nodePackages.pulp ];
+  });
+
   node-inspector = nodePackages.node-inspector.override {
     buildInputs = [ nodePackages.node-pre-gyp ];
   };
@@ -64,12 +77,13 @@ nodePackages // {
     '';
   };
 
-  npm2nix = nodePackages."npm2nix-git://github.com/NixOS/npm2nix.git#5.12.0".override {
-    postInstall = "npm run-script prepublish";
-  };
-
   pnpm = nodePackages.pnpm.override {
     nativeBuildInputs = [ pkgs.makeWrapper ];
+
+    preRebuild = ''
+      sed 's/"link:/"file:/g' --in-place package.json
+    '';
+
     postInstall = let
       pnpmLibPath = stdenv.lib.makeBinPath [
         nodejs.passthru.python
@@ -82,12 +96,34 @@ nodePackages // {
     '';
   };
 
-  scuttlebot = nodePackages.scuttlebot.override {
+  ssb-server = nodePackages.ssb-server.override {
     buildInputs = [ pkgs.automake pkgs.autoconf nodePackages.node-gyp-build ];
+  };
+
+  tedicross = nodePackages."tedicross-git+https://github.com/TediCross/TediCross.git#v0.8.7".override {
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postInstall = ''
+      makeWrapper '${nodejs}/bin/node' "$out/bin/tedicross" \
+        --add-flags "$out/lib/node_modules/tedicross/main.js"
+    '';
   };
 
   webtorrent-cli = nodePackages.webtorrent-cli.override {
     buildInputs = [ nodePackages.node-gyp-build ];
   };
 
+  joplin = nodePackages.joplin.override {
+    nativeBuildInputs = [ pkgs.pkg-config ];
+    buildInputs = with pkgs; [
+      # required by sharp
+      # https://sharp.pixelplumbing.com/install
+      vips
+
+      nodePackages.node-pre-gyp
+    ];
+  };
+
+  thelounge = nodePackages.thelounge.override {
+    buildInputs = [ nodePackages.node-pre-gyp ];
+  };
 }

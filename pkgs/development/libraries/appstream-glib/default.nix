@@ -1,10 +1,29 @@
-{ stdenv, fetchFromGitHub, substituteAll, pkgconfig, gettext, gtk3, glib
-, gtk-doc, libarchive, gobject-introspection, libxslt, pngquant
-, sqlite, libsoup, attr, acl, docbook_xsl, docbook_xml_dtd_42
-, libuuid, json-glib, meson, gperf, ninja
+{ stdenv
+, fetchFromGitHub
+, substituteAll
+, docbook_xml_dtd_42
+, docbook_xsl
+, fontconfig
+, freetype
+, gdk-pixbuf
+, gettext
+, glib
+, gobject-introspection
+, gperf
+, gtk-doc
+, gtk3
+, json-glib
+, libarchive
+, libsoup
+, libuuid
+, libxslt
+, meson
+, ninja
+, pkgconfig
+, pngquant
 }:
 stdenv.mkDerivation rec {
-  name = "appstream-glib-0.7.14";
+  name = "appstream-glib-0.7.16";
 
   outputs = [ "out" "dev" "man" "installedTests" ];
   outputBin = "dev";
@@ -12,24 +31,44 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "hughsie";
     repo = "appstream-glib";
-    rev = stdenv.lib.replaceStrings ["." "-"] ["_" "_"] name;
-    sha256 = "1908ilra1l0m2a224azmj6p4yglzdwwk41rr6rhby959sgw3iaky";
+    rev = stdenv.lib.replaceStrings [ "." "-" ] [ "_" "_" ] name;
+    sha256 = "05x2pmsq18fcpgfvx0y54qdlryy5c9k3sxk6kgank8frkzhgnm9r";
   };
 
   nativeBuildInputs = [
-    meson pkgconfig ninja gtk-doc libxslt docbook_xsl docbook_xml_dtd_42
+    docbook_xml_dtd_42
+    docbook_xsl
+    gettext
+    gobject-introspection
+    gperf
+    gtk-doc
+    libxslt
+    meson
+    ninja
+    pkgconfig
   ];
+
   buildInputs = [
-    glib gettext sqlite libsoup
-    attr acl libuuid json-glib
-    libarchive gobject-introspection gperf
+    fontconfig
+    freetype
+    gdk-pixbuf
+    glib
+    gtk3
+    json-glib
+    libarchive
+    libsoup
+    libuuid
   ];
-  propagatedBuildInputs = [ gtk3 ];
+
+  propagatedBuildInputs = [
+    glib
+    gdk-pixbuf
+  ];
 
   patches = [
     (substituteAll {
       src = ./paths.patch;
-      pngquant= "${pngquant}/bin/pngquant";
+      pngquant = "${pngquant}/bin/pngquant";
     })
   ];
 
@@ -47,9 +86,9 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Objects and helper methods to read and write AppStream metadata";
-    homepage = https://people.freedesktop.org/~hughsient/appstream-glib/;
+    homepage = "https://people.freedesktop.org/~hughsient/appstream-glib/";
     license = licenses.lgpl2Plus;
-    platforms = platforms.linux;
+    platforms = platforms.unix;
     maintainers = with maintainers; [ lethalman matthewbauer ];
   };
 }

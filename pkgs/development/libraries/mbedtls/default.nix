@@ -10,14 +10,15 @@
 }:
 
 stdenv.mkDerivation rec {
+  pname = "mbedtls";
   name = "mbedtls-${version}";
-  version = "2.15.1";
+  version = "2.16.3"; # nixpkgs-update: no auto update
 
   src = fetchFromGitHub {
     owner = "ARMmbed";
     repo = "mbedtls";
-    rev = name;
-    sha256 = "0w6cm2f7d43wp8cx6r5h4icq8zcix1jnvivshypir1rbk1q83gx8";
+    rev = "${pname}-${version}";
+    sha256 = "1mzh92yyz93099a1gb2wvwc76jv12d1k1wg9k3dimbgczxgrkirc";
   };
 
   nativeBuildInputs = [ cmake ninja perl python ];
@@ -30,10 +31,10 @@ stdenv.mkDerivation rec {
   cmakeFlags = [ "-DUSE_SHARED_MBEDTLS_LIBRARY=on" ];
 
   meta = with stdenv.lib; {
-    homepage = https://tls.mbed.org/;
+    homepage = "https://tls.mbed.org/";
     description = "Portable cryptographic and TLS library, formerly known as PolarSSL";
     license = licenses.asl20;
     platforms = platforms.all;
-    maintainers = with maintainers; [ wkennington fpletz ];
+    maintainers = with maintainers; [ fpletz ];
   };
 }

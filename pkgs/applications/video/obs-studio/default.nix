@@ -1,6 +1,6 @@
-{ stdenv
+{ config, stdenv
+, mkDerivation
 , fetchFromGitHub
-, fetchpatch
 , cmake
 , fdk_aac
 , ffmpeg
@@ -11,6 +11,7 @@
 , libXdmcp
 , qtbase
 , qtx11extras
+, qtsvg
 , speex
 , libv4l
 , x264
@@ -26,35 +27,26 @@
 , swig
 , python3
 
-, alsaSupport ? false
+, alsaSupport ? stdenv.isLinux
 , alsaLib
-, pulseaudioSupport ? false
+, pulseaudioSupport ? config.pulseaudio or stdenv.isLinux
 , libpulseaudio
 }:
 
 let
-  optional = stdenv.lib.optional;
-in stdenv.mkDerivation rec {
-  name = "obs-studio-${version}";
-  version = "22.0.3";
+  inherit (stdenv.lib) optional optionals;
+in mkDerivation rec {
+  pname = "obs-studio";
+  version = "25.0.3";
 
   src = fetchFromGitHub {
-    owner = "jp9000";
+    owner = "obsproject";
     repo = "obs-studio";
-    rev = "${version}";
-    sha256 = "0ri9qkqk3h71b1a5bwpjzqdr21bbmfqbykg48l779d20zln23n1i";
+    rev = version;
+    sha256 = "11hl3lxvbsm7ackl7qhzgy2x0jsz2dfpi2qxsf8pkp908lrh3b3r";
   };
 
-  patches = [
-    (fetchpatch {
-      url = "https://patch-diff.githubusercontent.com/raw/obsproject/obs-studio/pull/1557.diff";
-      sha256 = "162fnkxh2wyn6wrrm1kzv7c2mn96kx35vlmk2qwn1nqlifbpsfyq";
-    })
-  ];
-
-  nativeBuildInputs = [ cmake
-                        pkgconfig
-                      ];
+  nativeBuildInputs = [ cmake pkgconfig ];
 
   buildInputs = [ curl
                   fdk_aac
@@ -67,13 +59,14 @@ in stdenv.mkDerivation rec {
                   libXdmcp
                   qtbase
                   qtx11extras
+                  qtsvg
                   speex
                   x264
                   vlc
                   makeWrapper
                   mbedtls
                 ]
-                ++ optional scriptingSupport [ luajit swig python3 ]
+                ++ optionals scriptingSupport [ luajit swig python3 ]
                 ++ optional alsaSupport alsaLib
                 ++ optional pulseaudioSupport libpulseaudio;
 
@@ -94,7 +87,7 @@ in stdenv.mkDerivation rec {
       Software", software originally designed for recording and streaming live
       video content, efficiently
     '';
-    homepage = https://obsproject.com;
+    homepage = "https://obsproject.com";
     maintainers = with maintainers; [ jb55 MP2E ];
     license = licenses.gpl2;
     platforms = [ "x86_64-linux" "i686-linux" ];

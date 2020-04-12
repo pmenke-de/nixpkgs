@@ -1,34 +1,42 @@
-{ stdenv
-, buildPythonPackage
-, fetchPypi, fetchpatch
+{ lib, stdenv, buildPythonPackage, fetchPypi, isPy27, python
 , darwin
+, pytest
+, mock
+, ipaddress
 }:
 
 buildPythonPackage rec {
   pname = "psutil";
-  version = "5.4.8";
+  version = "5.7.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "6e265c8f3da00b015d24b842bfeb111f856b13d24f2c57036582568dc650d6c3";
+    sha256 = "03jykdi3dgf1cdal9bv4fq9zjvzj9l9bs99gi5ar81sdl5nc2pk8";
   };
 
-  patches = [
-    (fetchpatch {
-      name = "disk_io_counters_fails.patch";
-      url = "https://github.com/giampaolo/psutil/commit/8f99f3782663959062ee868bbfdbc336307a3a4d.diff";
-      sha256 = "0j7wdgq8y20k27wcpmbgc1chd0vmbkxy8j0zwni1s4i7hyk64hmk";
-    })
-  ];
+  # arch doesn't report frequency is the same way
+  # tests segfaults on darwin https://github.com/giampaolo/psutil/issues/1715
+  doCheck = stdenv.isDarwin || stdenv.isx86_64;
+  checkInputs = [ pytest ]
+    ++ lib.optionals isPy27 [ mock ipaddress ];
+  # out must be referenced as test import paths are relative
+  # disable tests which don't work in sandbox
+  # cpu_times is flakey on darwin
+  checkPhase = ''
+    pytest $out/${python.sitePackages}/psutil/tests/test_system.py \
+      -k 'not user \
+          and not disk_io_counters and not sensors_battery \
+          and not cpu_times'
+  '';
 
-  # No tests in archive
-  doCheck = false;
+  buildInputs = lib.optionals stdenv.isDarwin [ darwin.IOKit ];
 
-  buildInputs = [] ++ stdenv.lib.optionals stdenv.isDarwin [ darwin.IOKit ];
+  pythonImportsCheck = [ "psutil" ];
 
-  meta = {
+  meta = with lib; {
     description = "Process and system utilization information interface for python";
-    homepage = https://github.com/giampaolo/psutil;
-    license = stdenv.lib.licenses.bsd3;
+    homepage = "https://github.com/giampaolo/psutil";
+    license = licenses.bsd3;
+    maintainers = with maintainers; [ jonringer ];
   };
 }

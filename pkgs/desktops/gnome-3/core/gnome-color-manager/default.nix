@@ -1,18 +1,54 @@
-{ stdenv, fetchurl, meson, ninja, pkgconfig, gettext, itstool, desktop-file-utils, gnome3, glib, gtk3, libexif, libtiff, colord, colord-gtk, libcanberra-gtk3, lcms2, vte, exiv2 }:
+{ stdenv
+, fetchurl
+, meson
+, ninja
+, pkgconfig
+, gettext
+, itstool
+, desktop-file-utils
+, gnome3
+, glib
+, gtk3
+, libexif
+, libtiff
+, colord
+, colord-gtk
+, libcanberra-gtk3
+, lcms2
+, vte
+, exiv2
+}:
 
-let
+stdenv.mkDerivation rec {
   pname = "gnome-color-manager";
-  version = "3.30.0";
-in stdenv.mkDerivation rec {
-  name = "${pname}-${version}";
+  version = "3.32.0";
 
   src = fetchurl {
-    url = "mirror://gnome/sources/${pname}/${stdenv.lib.versions.majorMinor version}/${name}.tar.xz";
-    sha256 = "105bqqq3yvdn5lx94mkl0d450f0l8lmwfjjcwyls1pycmj0vifwh";
+    url = "mirror://gnome/sources/${pname}/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
+    sha256 = "1vpxa2zjz3lkq9ldjg0fl65db9s6b4kcs8nyaqfz3jygma7ifg3w";
   };
 
-  nativeBuildInputs = [ meson ninja pkgconfig gettext itstool desktop-file-utils ];
-  buildInputs = [ glib gtk3 libexif libtiff colord colord-gtk libcanberra-gtk3 lcms2 vte exiv2 ];
+  nativeBuildInputs = [
+    meson
+    ninja
+    pkgconfig
+    gettext
+    itstool
+    desktop-file-utils
+  ];
+
+  buildInputs = [
+    glib
+    gtk3
+    libexif
+    libtiff
+    colord
+    colord-gtk
+    libcanberra-gtk3
+    lcms2
+    vte
+    exiv2
+  ];
 
   passthru = {
     updateScript = gnome3.updateScript {

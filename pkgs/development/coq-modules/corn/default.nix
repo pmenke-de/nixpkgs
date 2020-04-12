@@ -21,10 +21,10 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  installFlags = "COQLIB=$(out)/lib/coq/${coq.coq-version}/";
+  installFlags = [ "COQLIB=$(out)/lib/coq/${coq.coq-version}/" ];
 
   meta = {
-    homepage = http://c-corn.github.io/;
+    homepage = "http://c-corn.github.io/";
     license = stdenv.lib.licenses.gpl2;
     description = "A Coq library for constructive analysis";
     maintainers = [ stdenv.lib.maintainers.vbgl ];
@@ -32,7 +32,7 @@ stdenv.mkDerivation rec {
   };
 
   passthru = {
-    compatibleCoqVersions = v: stdenv.lib.versionAtLeast v "8.6";
+    compatibleCoqVersions = v: builtins.elem v [ "8.6" "8.7" "8.8" "8.9" ];
   };
 
 }

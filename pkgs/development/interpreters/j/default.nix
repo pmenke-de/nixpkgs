@@ -1,7 +1,7 @@
 { stdenv, fetchFromGitHub, readline, libedit, bc }:
 
 stdenv.mkDerivation rec {
-  name = "j-${version}";
+  pname = "j";
   version = "807";
   jtype = "release";
   src = fetchFromGitHub {
@@ -88,6 +88,6 @@ stdenv.mkDerivation rec {
     maintainers = with maintainers; [ raskin synthetica ];
     platforms = with platforms; linux ++ darwin;
     license = licenses.gpl3Plus;
-    homepage = http://jsoftware.com/;
+    homepage = "http://jsoftware.com/";
   };
 }

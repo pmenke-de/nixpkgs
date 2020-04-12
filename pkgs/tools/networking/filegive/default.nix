@@ -13,10 +13,10 @@ buildGoPackage rec {
   goPackagePath = "viric.name/soft/filegive";
 
   meta = with stdenv.lib; {
-    homepage = http://viric.name/cgi-bin/filegive;
+    homepage = "http://viric.name/cgi-bin/filegive";
     description = "Easy p2p file sending program";
     license = licenses.agpl3Plus;
     maintainers = [ maintainers.viric ];
-    platforms = platforms.linux;
+    platforms = platforms.unix;
   };
 }

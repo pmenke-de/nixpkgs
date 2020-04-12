@@ -1,21 +1,47 @@
-{ stdenv
+{ lib
 , buildPythonPackage
 , fetchPypi
+, isPy27
+, pythonOlder
+, funcsigs
+, setuptools_scm
+# Check Inputs
+, pytestCheckHook
+, numpy
+, matplotlib
+, uncertainties
 }:
 
 buildPythonPackage rec {
   pname = "pint";
-  version = "0.8.1";
+  version = "0.11";
 
   src = fetchPypi {
-    inherit pname version;
-    sha256 = "afcf31443a478c32bbac4b00337ee9026a13d0e2ac83d30c79151462513bb0d4";
+    inherit version;
+    pname = "Pint";
+    sha256 = "0kfgnmcs6z9ndhzvwg2xzhpwxgyyagdsdz5dns1jy40fa1q113rh";
   };
 
-  meta = with stdenv.lib; {
+  disabled = pythonOlder "3.6";
+
+  propagatedBuildInputs = [
+    setuptools_scm
+  ] ++ lib.optional isPy27 funcsigs;
+
+  # Test suite explicitly requires pytest
+  checkInputs = [
+    pytestCheckHook
+    numpy
+    matplotlib
+    uncertainties
+  ];
+  dontUseSetuptoolsCheck = true;
+
+  meta = with lib; {
     description = "Physical quantities module";
     license = licenses.bsd3;
     homepage = "https://github.com/hgrecco/pint/";
+    maintainers = [ maintainers.costrouc ];
   };
 
 }

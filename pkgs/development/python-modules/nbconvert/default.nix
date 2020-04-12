@@ -22,11 +22,11 @@
 
 buildPythonPackage rec {
   pname = "nbconvert";
-  version = "5.4.0";
+  version = "5.6.1";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "a8a2749f972592aa9250db975304af6b7337f32337e523a2c995cc9e12c07807";
+    sha256 = "21fb48e700b43e82ba0e3142421a659d7739b65568cc832a13976a77be16b523";
   };
 
   checkInputs = [ nose pytest glibcLocales ];
@@ -44,10 +44,13 @@ buildPythonPackage rec {
     HOME=$(mktemp -d) py.test -v --ignore="nbconvert/preprocessors/tests/test_execute.py"
   '';
 
+  # Some of the tests use localhost networking.
+  __darwinAllowLocalNetworking = true;
+
   meta = {
     description = "Converting Jupyter Notebooks";
-    homepage = http://jupyter.org/;
+    homepage = "https://jupyter.org/";
     license = lib.licenses.bsd3;
-    maintainers = with lib.maintainers; [ fridh globin ];
+    maintainers = with lib.maintainers; [ fridh ];
   };
 }

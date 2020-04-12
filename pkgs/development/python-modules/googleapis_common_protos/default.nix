@@ -1,16 +1,16 @@
 { stdenv, buildPythonPackage, fetchPypi
-, protobuf, pytest }:
+, protobuf, pytest, setuptools }:
 
 buildPythonPackage rec {
   pname = "googleapis-common-protos";
-  version = "1.5.5";
+  version = "1.51.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0946967c4c29b1339bb211949e1e17dbe0ae9ff8265fafa7bf4cf2164ef5a3b1";
+    sha256 = "0vi2kr0daivx2q1692lp3y61bfnvdw471xsfwi8924br89q92g01";
   };
 
-  propagatedBuildInputs = [ protobuf ];
+  propagatedBuildInputs = [ protobuf setuptools ];
   checkInputs = [ pytest ];
 
   doCheck = false;  # there are no tests
@@ -19,6 +19,6 @@ buildPythonPackage rec {
     description = "Common protobufs used in Google APIs";
     homepage = "https://github.com/googleapis/googleapis";
     license = licenses.asl20;
-    maintainers = with maintainers; [ vanschelven ];
+    maintainers = with maintainers; [ ];
   };
 }

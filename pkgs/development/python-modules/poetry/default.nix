@@ -1,5 +1,5 @@
 { lib, buildPythonPackage, fetchPypi, callPackage
-, isPy27, isPy34
+, isPy27, isPy34, pythonOlder
 , cleo
 , requests
 , cachy
@@ -10,46 +10,52 @@
 , pkginfo
 , html5lib
 , shellingham
+, subprocess32
 , tomlkit
 , typing
 , pathlib2
 , virtualenv
 , functools32
+, clikit
+, keyring
+, pexpect
+, importlib-metadata
 , pytest
+, jsonschema
+, intreehooks
+, lockfile
 }:
 
 let
-  cleo6 = cleo.overrideAttrs (oldAttrs: rec {
-    version = "0.6.8";
-    src = fetchPypi {
-      inherit (oldAttrs) pname;
-      inherit version;
-      sha256 = "06zp695hq835rkaq6irr1ds1dp2qfzyf32v60vxpd8rcnxv319l5";
-    };
-  });
-
-  jsonschema3 = callPackage ./jsonschema.nix { };
+  glob2 = callPackage ./glob2.nix { };
 
 in buildPythonPackage rec {
   pname = "poetry";
-  version = "0.12.10";
+  version = "1.0.5";
+  format = "pyproject";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "00npb0jlimnk4r01zkhfmns4843j1hfhd388s326da5pd8n0dq7l";
+    sha256 = "02h387k0xssvv78yy82pcpknpq4w5ym2in1zl8cg9r5wljl5w6cf";
   };
 
   postPatch = ''
-    substituteInPlace pyproject.toml --replace "3.0a3" "3.0.0a3"
-    substituteInPlace setup.py --replace "3.0a3" "3.0.0a3"
+    substituteInPlace pyproject.toml \
+     --replace "pyrsistent = \"^0.14.2\"" "pyrsistent = \"^0.15.0\"" \
+     --replace "requests-toolbelt = \"^0.8.0\"" "requests-toolbelt = \"^0.9.0\"" \
+     --replace 'importlib-metadata = {version = "~1.1.3", python = "<3.8"}' \
+       'importlib-metadata = {version = ">=1.3,<2", python = "<3.8"}'
   '';
 
+  nativeBuildInputs = [ intreehooks ];
+
   propagatedBuildInputs = [
-    cleo6
+    cleo
+    clikit
     requests
     cachy
     requests-toolbelt
-    jsonschema3
+    jsonschema
     pyrsistent
     pyparsing
     cachecontrol
@@ -57,8 +63,21 @@ in buildPythonPackage rec {
     html5lib
     shellingham
     tomlkit
-  ] ++ lib.optionals (isPy27 || isPy34) [ typing pathlib2 ]
-    ++ lib.optionals isPy27 [ virtualenv functools32 ];
+    pexpect
+    keyring
+    lockfile
+  ] ++ lib.optionals (isPy27 || isPy34) [ typing pathlib2 glob2 ]
+    ++ lib.optionals isPy27 [ virtualenv functools32 subprocess32 ]
+    ++ lib.optionals (pythonOlder "3.8") [ importlib-metadata ];
+
+  postInstall = ''
+    mkdir -p "$out/share/bash-completion/completions"
+    "$out/bin/poetry" completions bash > "$out/share/bash-completion/completions/poetry"
+    mkdir -p "$out/share/zsh/vendor-completions"
+    "$out/bin/poetry" completions zsh > "$out/share/zsh/vendor-completions/_poetry"
+    mkdir -p "$out/share/fish/vendor_completions.d"
+    "$out/bin/poetry" completions fish > "$out/share/fish/vendor_completions.d/poetry.fish"
+  '';
 
   # No tests in Pypi tarball
   doCheck = false;
@@ -68,7 +87,7 @@ in buildPythonPackage rec {
   '';
 
   meta = with lib; {
-    homepage = https://github.com/sdispater/poetry;
+    homepage = "https://python-poetry.org/";
     description = "Python dependency management and packaging made easy";
     license = licenses.mit;
     maintainers = with maintainers; [ jakewaksbaum ];

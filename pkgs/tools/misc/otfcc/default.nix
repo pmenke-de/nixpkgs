@@ -1,7 +1,7 @@
 { stdenv, fetchFromGitHub, premake5 }:
 
 stdenv.mkDerivation rec {
-  name = "otfcc-${version}";
+  pname = "otfcc";
   version = "0.9.6";
 
   src = fetchFromGitHub {
@@ -29,7 +29,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Optimized OpenType builder and inspector";
-    homepage = https://github.com/caryll/otfcc;
+    homepage = "https://github.com/caryll/otfcc";
     license = licenses.asl20;
     platforms = [ "i686-linux" "x86_64-linux" "x86_64-darwin" ];
     maintainers = with maintainers; [ jfrankenau ttuegel ];

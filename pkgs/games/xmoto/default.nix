@@ -1,9 +1,9 @@
 { stdenv, fetchurl, chipmunk, sqlite, curl, zlib, bzip2, libjpeg
-, libpng, freeglut, libGLU_combined, SDL, SDL_mixer, SDL_image, SDL_net
+, libpng, freeglut, libGLU, libGL, SDL, SDL_mixer, SDL_image, SDL_net
 , SDL_ttf, lua5, ode, libxdg_basedir, libxml2 }:
 
 stdenv.mkDerivation rec {
-  name = "xmoto-${version}";
+  pname = "xmoto";
   version = "0.5.11";
 
   src = fetchurl {
@@ -13,7 +13,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     chipmunk sqlite curl zlib bzip2 libjpeg libpng
-    freeglut libGLU_combined SDL SDL_mixer SDL_image SDL_net SDL_ttf
+    freeglut libGLU libGL SDL SDL_mixer SDL_image SDL_net SDL_ttf
     lua5 ode libxdg_basedir libxml2
   ];
 
@@ -21,7 +21,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Obstacled race game";
-    homepage = http://xmoto.tuxfamily.org;
+    homepage = "http://xmoto.tuxfamily.org";
     maintainers = with maintainers; [ raskin pSub ];
     platforms = platforms.linux;
     license = licenses.gpl2;

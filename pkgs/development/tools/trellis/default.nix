@@ -7,29 +7,40 @@ let
   boostWithPython3 = boost.override { python = python3; enablePython = true; };
 in
 stdenv.mkDerivation rec {
-  name = "trellis-${version}";
-  version = "2018.12.20";
+  pname = "trellis";
+  version = "2020.03.25";
+
+  # git describe --tags
+  realVersion = with stdenv.lib; with builtins;
+    "1.0-152-g${substring 0 7 (elemAt srcs 0).rev}";
 
   srcs = [
     (fetchFromGitHub {
-       owner  = "symbiflow";
+       owner  = "SymbiFlow";
        repo   = "prjtrellis";
-       rev    = "b947028a6ac6494b6000c6e1ab5aa0db813e8544";
-       sha256 = "14dcsl2drx3xaqvpawp0j7088cijxcr5018yji48rmbl85763aw9";
+       rev    = "c27bfc220a9f85f04173840d1ea081ba478adc9c";
+       sha256 = "1fyl51246ns2njvij8g7k9a9axvhz8n8g09fny5dym9q7hcx08qh";
        name   = "trellis";
      })
+
     (fetchFromGitHub {
-      owner  = "symbiflow";
+      owner  = "SymbiFlow";
       repo   = "prjtrellis-db";
-      rev    = "670d04f0b8412193d5e974eea67f2bb7355aa1ec";
-      sha256 = "1hm385rg1jq9qbq63g5134gq9xpfadvpahxvzwpv0q543brkg730";
-      name   = "database";
+      rev    = "c137076fdd8bfca3d2bf9cdacda9983dbbec599a";
+      sha256 = "1br0vw8wwcn2qhs8kxkis5xqlr2nw7r3mf1qwjp8xckd6fa1wlcw";
+      name   = "trellis-database";
     })
   ];
   sourceRoot = "trellis";
 
   buildInputs = [ boostWithPython3 ];
   nativeBuildInputs = [ cmake python3 ];
+  cmakeFlags = [
+    "-DCURRENT_GIT_VERSION=${realVersion}"
+    # TODO: should this be in stdenv instead?
+    "-DCMAKE_INSTALL_DATADIR=${placeholder "out"}/share"
+  ];
+  enableParallelBuilding = true;
 
   preConfigure = with builtins; ''
     rmdir database && ln -sfv ${elemAt srcs 1} ./database
@@ -46,9 +57,9 @@ stdenv.mkDerivation rec {
       to provide sufficient information to develop a free and
       open Verilog to bitstream toolchain for these devices.
     '';
-    homepage    = https://github.com/symbiflow/prjtrellis;
+    homepage    = "https://github.com/SymbiFlow/prjtrellis";
     license     = stdenv.lib.licenses.isc;
-    maintainers = with maintainers; [ q3k thoughtpolice ];
-    platforms   = stdenv.lib.platforms.linux;
+    maintainers = with maintainers; [ q3k thoughtpolice emily ];
+    platforms   = stdenv.lib.platforms.all;
   };
 }

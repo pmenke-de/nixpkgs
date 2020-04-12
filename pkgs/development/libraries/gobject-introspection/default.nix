@@ -1,5 +1,5 @@
 { stdenv, fetchurl, glib, flex, bison, meson, ninja, pkgconfig, libffi, python3
-, libintl, cctools, cairo, gnome3, glibcLocales, fetchpatch
+, libintl, cctools, cairo, gnome3, glibcLocales
 , substituteAll, nixStoreDir ? builtins.storeDir
 , x11Support ? true
 }:
@@ -7,17 +7,14 @@
 # it may be worth thinking about using multiple derivation outputs
 # In that case its about 6MB which could be separated
 
-let
-  pname = "gobject-introspection";
-  version = "1.58.3";
-in
 with stdenv.lib;
 stdenv.mkDerivation rec {
-  name = "${pname}-${version}";
+  pname = "gobject-introspection";
+  version = "1.64.0";
 
   src = fetchurl {
-    url = "mirror://gnome/sources/${pname}/${stdenv.lib.versions.majorMinor version}/${name}.tar.xz";
-    sha256 = "1j63rll0s608s0v4kqxkjapkpf46l069mlahzh8wykclplmn6nq2";
+    url = "mirror://gnome/sources/${pname}/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
+    sha256 = "10pwykfnk7pw8k9k8iz3p72phxvyrh5q4d7gr3ysv08w15immh7a";
   };
 
   outputs = [ "out" "dev" "man" ];
@@ -32,6 +29,8 @@ stdenv.mkDerivation rec {
 
   mesonFlags = [
     "--datadir=${placeholder "dev"}/share"
+    "-Ddoctool=disabled"
+    "-Dcairo=disabled"
   ];
 
   # outputs TODO: share/gobject-introspection-1.0/tests is needed during build
@@ -40,7 +39,6 @@ stdenv.mkDerivation rec {
   setupHook = ./setup-hook.sh;
 
   patches = [
-    ./macos-shared-library.patch
     (substituteAll {
       src = ./test_shlibs.patch;
       inherit nixStoreDir;
@@ -55,7 +53,20 @@ stdenv.mkDerivation rec {
       cairoLib = "${getLib cairo}/lib";
     });
 
-  doCheck = true;
+  doCheck = !stdenv.isAarch64;
+
+  preBuild = ''
+    # Our gobject-introspection patches make the shared library paths absolute
+    # in the GIR files. When running tests, the library is not yet installed,
+    # though, so we need to replace the absolute path with a local one during build.
+    # We are using a symlink that we will delete before installation.
+    mkdir -p $out/lib
+    ln -s $PWD/tests/scanner/libregress-1.0${stdenv.targetPlatform.extensions.sharedLibrary} $out/lib/libregress-1.0${stdenv.targetPlatform.extensions.sharedLibrary}
+    cleanLibregressSymlink() {
+      rm $out/lib/libregress-1.0${stdenv.targetPlatform.extensions.sharedLibrary}
+    }
+    preInstallPhases="$preInstallPhases cleanLibregressSymlink"
+  '';
 
   passthru = {
     updateScript = gnome3.updateScript {
@@ -65,7 +76,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "A middleware layer between C libraries and language bindings";
-    homepage    = http://live.gnome.org/GObjectIntrospection;
+    homepage    = "http://live.gnome.org/GObjectIntrospection";
     maintainers = with maintainers; [ lovek323 lethalman ];
     platforms   = platforms.unix;
     license = with licenses; [ gpl2 lgpl2 ];

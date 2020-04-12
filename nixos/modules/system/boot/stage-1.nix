@@ -11,7 +11,9 @@ let
 
   udev = config.systemd.package;
 
-  modulesTree = config.system.modulesTree;
+  kernel-name = config.boot.kernelPackages.kernel.name or "kernel";
+
+  modulesTree = config.system.modulesTree.override { name = kernel-name + "-modules"; };
   firmware = config.hardware.firmware;
 
 
@@ -30,7 +32,7 @@ let
   fileSystems = filter utils.fsNeededForBoot config.system.build.fileSystems;
 
   # A utility for enumerating the shared-library dependencies of a program
-  findLibs = pkgs.writeShellScriptBin "find-libs" ''
+  findLibs = pkgs.buildPackages.writeShellScriptBin "find-libs" ''
     set -euo pipefail
 
     declare -A seen
@@ -118,6 +120,7 @@ let
 
       # Copy udev.
       copy_bin_and_libs ${udev}/lib/systemd/systemd-udevd
+      copy_bin_and_libs ${udev}/lib/systemd/systemd-sysctl
       copy_bin_and_libs ${udev}/bin/udevadm
       for BIN in ${udev}/lib/udev/*_id; do
         copy_bin_and_libs $BIN
@@ -139,7 +142,10 @@ let
              let source' = if source == null then dest else source; in
                ''
                   mkdir -p $(dirname "$out/secrets/${dest}")
-                  cp -a ${source'} "$out/secrets/${dest}"
+                  # Some programs (e.g. ssh) doesn't like secrets to be
+                  # symlinks, so we use `cp -L` here to match the
+                  # behaviour when secrets are natively supported.
+                  cp -Lr ${source'} "$out/secrets/${dest}"
                 ''
           ) config.boot.initrd.secrets))
        }
@@ -196,16 +202,27 @@ let
     ''; # */
 
 
-  udevRules = pkgs.runCommand "udev-rules"
-    { allowedReferences = [ extraUtils ]; }
-    ''
+  linkUnits = pkgs.runCommand "link-units" {
+      allowedReferences = [ extraUtils ];
+      preferLocalBuild = true;
+    } ''
+      mkdir -p $out
+      cp -v ${udev}/lib/systemd/network/*.link $out/
+    '';
+
+  udevRules = pkgs.runCommand "udev-rules" {
+      allowedReferences = [ extraUtils ];
+      preferLocalBuild = true;
+    } ''
       mkdir -p $out
 
       echo 'ENV{LD_LIBRARY_PATH}="${extraUtils}/lib"' > $out/00-env.rules
 
       cp -v ${udev}/lib/udev/rules.d/60-cdrom_id.rules $out/
       cp -v ${udev}/lib/udev/rules.d/60-persistent-storage.rules $out/
+      cp -v ${udev}/lib/udev/rules.d/75-net-description.rules $out/
       cp -v ${udev}/lib/udev/rules.d/80-drivers.rules $out/
+      cp -v ${udev}/lib/udev/rules.d/80-net-setup-link.rules $out/
       cp -v ${pkgs.lvm2}/lib/udev/rules.d/*.rules $out/
       ${config.boot.initrd.extraUdevRulesCommands}
 
@@ -214,14 +231,12 @@ let
             --replace ata_id ${extraUtils}/bin/ata_id \
             --replace scsi_id ${extraUtils}/bin/scsi_id \
             --replace cdrom_id ${extraUtils}/bin/cdrom_id \
-            --replace ${pkgs.utillinux}/sbin/blkid ${extraUtils}/bin/blkid \
-            --replace /sbin/blkid ${extraUtils}/bin/blkid \
+            --replace ${pkgs.coreutils}/bin/basename ${extraUtils}/bin/basename \
+            --replace ${pkgs.utillinux}/bin/blkid ${extraUtils}/bin/blkid \
             --replace ${pkgs.lvm2}/sbin ${extraUtils}/bin \
-            --replace /sbin/mdadm ${extraUtils}/bin/mdadm \
+            --replace ${pkgs.mdadm}/sbin ${extraUtils}/sbin \
             --replace ${pkgs.bash}/bin/sh ${extraUtils}/bin/sh \
-            --replace /usr/bin/readlink ${extraUtils}/bin/readlink \
-            --replace /usr/bin/basename ${extraUtils}/bin/basename \
-            --replace ${udev}/bin/udevadm ${extraUtils}/bin/udevadm
+            --replace ${udev} ${extraUtils}
       done
 
       # Work around a bug in QEMU, which doesn't implement the "READ
@@ -256,7 +271,7 @@ let
       ${pkgs.buildPackages.busybox}/bin/ash -n $target
     '';
 
-    inherit udevRules extraUtils modulesClosure;
+    inherit linkUnits udevRules extraUtils modulesClosure;
 
     inherit (config.boot) resumeDevice;
 
@@ -289,6 +304,7 @@ let
   # The closure of the init script of boot stage 1 is what we put in
   # the initial RAM disk.
   initialRamdisk = pkgs.makeInitrd {
+    name = "initrd-${kernel-name}";
     inherit (config.boot.initrd) compressor prepend;
 
     contents =
@@ -298,9 +314,10 @@ let
         { object = pkgs.writeText "mdadm.conf" config.boot.initrd.mdadmConf;
           symlink = "/etc/mdadm.conf";
         }
-        { object = pkgs.runCommand "initrd-kmod-blacklist-ubuntu"
-            { src = "${pkgs.kmod-blacklist-ubuntu}/modprobe.conf"; }
-            ''
+        { object = pkgs.runCommand "initrd-kmod-blacklist-ubuntu" {
+              src = "${pkgs.kmod-blacklist-ubuntu}/modprobe.conf";
+              preferLocalBuild = true;
+            } ''
               target=$out
               ${pkgs.buildPackages.perl}/bin/perl -0pe 's/## file: iwlwifi.conf(.+?)##/##/s;' $src > $out
             '';
@@ -373,6 +390,17 @@ in
         Specify here the device where the file resides.
         You should also use <varname>boot.kernelParams</varname> to specify
         <literal><replaceable>resume_offset</replaceable></literal>.
+      '';
+    };
+
+    boot.initrd.enable = mkOption {
+      type = types.bool;
+      default = !config.boot.isContainer;
+      defaultText = "!config.boot.isContainer";
+      description = ''
+        Whether to enable the NixOS initial RAM disk (initrd). This may be
+        needed to perform some initialisation tasks (like mounting
+        network/encrypted file systems) before continuing the boot process.
       '';
     };
 
@@ -525,21 +553,23 @@ in
       };
 
     fileSystems = mkOption {
-      options.neededForBoot = mkOption {
-        default = false;
-        type = types.bool;
-        description = ''
-          If set, this file system will be mounted in the initial
-          ramdisk.  By default, this applies to the root file system
-          and to the file system containing
-          <filename>/nix/store</filename>.
-        '';
-      };
+      type = with lib.types; loaOf (submodule {
+        options.neededForBoot = mkOption {
+          default = false;
+          type = types.bool;
+          description = ''
+            If set, this file system will be mounted in the initial
+            ramdisk.  By default, this applies to the root file system
+            and to the file system containing
+            <filename>/nix/store</filename>.
+          '';
+        };
+      });
     };
 
   };
 
-  config = mkIf (!config.boot.isContainer) {
+  config = mkIf config.boot.initrd.enable {
     assertions = [
       { assertion = any (fs: fs.mountPoint == "/") fileSystems;
         message = "The ‘fileSystems’ option does not specify your root file system.";

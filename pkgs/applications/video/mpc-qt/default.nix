@@ -1,7 +1,7 @@
 { stdenv, fetchFromGitHub, pkgconfig, qmake, qtx11extras, qttools, mpv }:
 
 stdenv.mkDerivation rec {
-  name = "mpc-qt-${version}";
+  pname = "mpc-qt";
   version = "18.08";
 
   src = fetchFromGitHub {
@@ -19,7 +19,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Media Player Classic Qute Theater";
-    homepage = https://github.com/cmdrkotori/mpc-qt;
+    homepage = "https://github.com/cmdrkotori/mpc-qt";
     license = licenses.gpl2;
     platforms = platforms.unix;
     maintainers = with maintainers; [ romildo ];

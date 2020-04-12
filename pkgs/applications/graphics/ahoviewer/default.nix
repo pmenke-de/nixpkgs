@@ -1,20 +1,20 @@
-{ stdenv, fetchFromGitHub, pkgconfig, libconfig,
-  gtkmm2, glibmm, libxml2, libsecret, curl, libzip,
-  librsvg, gst_all_1, autoreconfHook, makeWrapper,
-  useUnrar ? false, unrar
+{ config, stdenv, fetchFromGitHub, pkgconfig, libconfig
+, gtkmm2, glibmm, libxml2, libsecret, curl, libzip
+, librsvg, gst_all_1, autoreconfHook, makeWrapper
+, useUnrar ? config.ahoviewer.useUnrar or false, unrar
 }:
 
 assert useUnrar -> unrar != null;
 
 stdenv.mkDerivation rec {
-  name = "ahoviewer-${version}";
-  version = "1.6.4";
+  pname = "ahoviewer";
+  version = "1.6.5";
 
   src = fetchFromGitHub {
     owner = "ahodesuka";
     repo = "ahoviewer";
     rev = version;
-    sha256 = "144jmk8w7dnmqy4w81b3kzama7i97chx16pgax2facn72a92921q";
+    sha256 = "1avdl4qcpznvf3s2id5qi1vnzy4wgh6vxpnrz777a1s4iydxpcd8";
   };
 
   enableParallelBuilding = true;
@@ -29,9 +29,7 @@ stdenv.mkDerivation rec {
     gst_all_1.gst-plugins-base
   ] ++ stdenv.lib.optional useUnrar unrar;
 
-  NIX_LDFLAGS = [
-    "-lpthread"
-  ];
+  NIX_LDFLAGS = "-lpthread";
 
   postPatch = ''patchShebangs version.sh'';
 
@@ -42,7 +40,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with stdenv.lib; {
-    homepage = https://github.com/ahodesuka/ahoviewer;
+    homepage = "https://github.com/ahodesuka/ahoviewer";
     description = "A GTK2 image viewer, manga reader, and booru browser";
     maintainers = with maintainers; [ skrzyp xzfc ];
     license = licenses.mit;

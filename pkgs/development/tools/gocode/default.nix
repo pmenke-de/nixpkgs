@@ -1,7 +1,7 @@
 { stdenv, buildGoPackage, fetchFromGitHub }:
 
 buildGoPackage rec {
-  name = "gocode-unstable-${version}";
+  pname = "gocode-unstable";
   version = "2018-11-05";
   rev = "0af7a86943a6e0237c90f8aeb74a882e1862c898";
 
@@ -37,7 +37,7 @@ buildGoPackage rec {
       Typical autocompletion time with warm cache is 30ms, which is barely
       noticeable.
     '';
-    homepage = https://github.com/mdempsky/gocode;
+    homepage = "https://github.com/mdempsky/gocode";
     license = licenses.mit;
     platforms = platforms.all;
     maintainers = with maintainers; [ kalbasit ];

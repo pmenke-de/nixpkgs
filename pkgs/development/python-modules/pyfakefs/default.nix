@@ -1,12 +1,12 @@
-{ stdenv, buildPythonPackage, fetchPypi, python, pytest, glibcLocales }:
+{ stdenv, buildPythonPackage, fetchPypi, python, pytest, glibcLocales, isPy37 }:
 
 buildPythonPackage rec {
-  version = "3.5.6";
+  version = "3.7.1";
   pname = "pyfakefs";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "efe9c318b2a37ae498a555889684c30ccb6a1b06bd391cb3baf0eb5ba68e9062";
+    sha256 = "1eb68bb250cc14310a6e33c197cbe2c8d93832b543f534e29b58286712f7e2b2";
   };
 
   postPatch = ''
@@ -24,19 +24,21 @@ buildPythonPackage rec {
       --replace "test_rename_dir_to_existing_dir" "notest_rename_dir_to_existing_dir"
   '');
 
+  # https://github.com/jmcgeheeiv/pyfakefs/issues/508
+  doCheck = !isPy37;
   checkInputs = [ pytest glibcLocales ];
 
   checkPhase = ''
     export LC_ALL=en_US.UTF-8
     ${python.interpreter} -m pyfakefs.tests.all_tests
     ${python.interpreter} -m pyfakefs.tests.all_tests_without_extra_packages
-    ${python.interpreter} -m pytest pyfakefs/tests/pytest/pytest_plugin_test.py
+    ${python.interpreter} -m pytest pyfakefs/pytest_tests/pytest_plugin_test.py
   '';
 
   meta = with stdenv.lib; {
     description = "Fake file system that mocks the Python file system modules";
     license     = licenses.asl20;
-    homepage    = http://pyfakefs.org/;
+    homepage    = "http://pyfakefs.org/";
     maintainers = with maintainers; [ gebner ];
   };
 }

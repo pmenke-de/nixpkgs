@@ -3,14 +3,14 @@
 }:
 
 stdenv.mkDerivation rec {
-  version = "2.0.37";
-  name = "munin-${version}";
+  version = "2.0.59";
+  pname = "munin";
 
   src = fetchFromGitHub {
     owner = "munin-monitoring";
     repo = "munin";
     rev = version;
-    sha256 = "10niyzckx90dwdr4d7vj07d1qjy3nk7xzp30nqnlxzbaww7n5v78";
+    sha256 = "1i28ba53gh9z0mb3fk0y3cb88wh73qdlbg7rl5g9mc6iwqrbvg97";
   };
 
   buildInputs = [
@@ -75,6 +75,7 @@ stdenv.mkDerivation rec {
   ];
 
   preBuild = ''
+    echo "${version}" > RELEASE
     substituteInPlace "Makefile" \
       --replace "/bin/pwd" "pwd" \
       --replace "HTMLOld.3pm" "HTMLOld.3"
@@ -91,16 +92,16 @@ stdenv.mkDerivation rec {
   # DESTDIR shouldn't be needed (and shouldn't have worked), but munin
   # developers have forgotten to use PREFIX everywhere, so we use DESTDIR to
   # ensure that everything is installed in $out.
-  makeFlags = ''
-    PREFIX=$(out)
-    DESTDIR=$(out)
-    PERLLIB=$(out)/${perlPackages.perl.libPrefix}
-    PERL=${perlPackages.perl}/bin/perl
-    PYTHON=${python}/bin/python
-    RUBY=${ruby}/bin/ruby
-    JAVARUN=${jre}/bin/java
-    PLUGINUSER=munin
-  '';
+  makeFlags = [
+    "PREFIX=$(out)"
+    "DESTDIR=$(out)"
+    "PERLLIB=$(out)/${perlPackages.perl.libPrefix}"
+    "PERL=${perlPackages.perl.outPath}/bin/perl"
+    "PYTHON=${python.outPath}/bin/python"
+    "RUBY=${ruby.outPath}/bin/ruby"
+    "JAVARUN=${jre.outPath}/bin/java"
+    "PLUGINUSER=munin"
+  ];
 
   postFixup = ''
     echo "Removing references to /usr/{bin,sbin}/ from munin plugins..."
@@ -133,7 +134,7 @@ stdenv.mkDerivation rec {
       interface. Munin can help analyze resource trends and 'what just happened
       to kill our performance?' problems.
     '';
-    homepage = http://munin-monitoring.org/;
+    homepage = "http://munin-monitoring.org/";
     license = licenses.gpl2;
     maintainers = [ maintainers.domenkozar maintainers.bjornfor ];
     platforms = platforms.linux;

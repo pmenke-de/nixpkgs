@@ -1,11 +1,11 @@
 { stdenv
 , ctags
+, appstream-glib
 , desktop-file-utils
 , docbook_xsl
 , docbook_xml_dtd_43
 , fetchurl
 , flatpak
-, glibcLocales
 , gnome3
 , libgit2-glib
 , gobject-introspection
@@ -13,15 +13,17 @@
 , gtk-doc
 , gtk3
 , gtksourceview4
-, hicolor-icon-theme
 , json-glib
 , jsonrpc-glib
 , libdazzle
+, libpeas
+, libportal
 , libxml2
 , meson
 , ninja
 , ostree
 , pcre
+, pcre2
 , pkgconfig
 , python3
 , sysprof
@@ -30,27 +32,27 @@
 , vte
 , webkitgtk
 , wrapGAppsHook
+, dbus
+, xvfb_run
+, glib
 }:
-let
-  version = "3.30.3";
+
+stdenv.mkDerivation rec {
   pname = "gnome-builder";
-in stdenv.mkDerivation {
-  name = "${pname}-${version}";
+  version = "3.36.0";
 
   src = fetchurl {
     url = "mirror://gnome/sources/${pname}/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    sha256 = "11h6apjyah91djf77m8xkl5rvdz7mwpp3bjc4yzzs9lm3pag764r";
+    sha256 = "G0nl6DVzb3k6cN2guFIe/XNhFNhKbaq5e8wz62VA0Qo=";
   };
 
   nativeBuildInputs = [
-    #appstream-glib # tests fail if these tools are available
+    appstream-glib
     desktop-file-utils
     docbook_xsl
     docbook_xml_dtd_43
-    glibcLocales # for Meson's gtkdochelper
     gobject-introspection
     gtk-doc
-    hicolor-icon-theme
     meson
     ninja
     pkgconfig
@@ -63,8 +65,10 @@ in stdenv.mkDerivation {
     ctags
     flatpak
     gnome3.devhelp
+    gnome3.glade
     libgit2-glib
-    gnome3.libpeas
+    libpeas
+    libportal
     vte
     gspell
     gtk3
@@ -75,11 +79,17 @@ in stdenv.mkDerivation {
     libxml2
     ostree
     pcre
+    pcre2
     python3
     sysprof
     template-glib
     vala
     webkitgtk
+  ];
+
+  checkInputs = [
+    dbus
+    xvfb_run
   ];
 
   outputs = [ "out" "devdoc" ];
@@ -90,19 +100,25 @@ in stdenv.mkDerivation {
 
   mesonFlags = [
     "-Dpython_libprefix=${python3.libPrefix}"
-    "-Dwith_docs=true"
+    "-Ddocs=true"
 
     # Making the build system correctly detect clang header and library paths
     # is difficult. Somebody should look into fixing this.
-    "-Dwith_clang=false"
+    "-Dplugin_clang=false"
+
+    # Do not try to check if appstream images exist
+    "-Dnetwork_tests=false"
   ];
 
   # Some tests fail due to being unable to find the Vte typelib, and I don't
   # understand why. Somebody should look into fixing this.
-  doCheck = false;
+  doCheck = true;
 
-  preInstall = ''
-    export LC_ALL="en_US.utf-8"
+  checkPhase = ''
+    export NO_AT_BRIDGE=1
+    xvfb-run -s '-screen 0 800x600x24' dbus-run-session \
+      --config-file=${dbus.daemon}/share/dbus-1/session.conf \
+      meson test --print-errorlogs
   '';
 
   pythonPath = with python3.pkgs; requiredPythonModules [ pygobject3 ];
@@ -133,7 +149,7 @@ in stdenv.mkDerivation {
       currently recommend running gnome-builder inside a nix-shell with
       appropriate dependencies loaded.
     '';
-    homepage = https://wiki.gnome.org/Apps/Builder;
+    homepage = "https://wiki.gnome.org/Apps/Builder";
     license = licenses.gpl3Plus;
     maintainers = gnome3.maintainers;
     platforms = platforms.linux;

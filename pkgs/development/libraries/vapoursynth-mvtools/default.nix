@@ -3,14 +3,14 @@
 }:
 
 stdenv.mkDerivation rec {
-  name = "vapoursynth-mvtools-${version}";
-  version = "20";
+  pname = "vapoursynth-mvtools";
+  version = "21";
 
   src = fetchFromGitHub {
     owner  = "dubhater";
     repo   = "vapoursynth-mvtools";
     rev    = "v${version}";
-    sha256 = "0nbq04wbmz7xqfcfpdvgg0p8xhh2xdcwhhx5gwr4j8bm611v0npz";
+    sha256 = "0vjxpp4jmmjhcp8z81idsbgq6jyx0l4r4i32b8alnp6c9fahjh6p";
   };
 
   nativeBuildInputs = [ pkgconfig ];
@@ -23,7 +23,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "A set of filters for motion estimation and compensation";
-    homepage = https://github.com/dubhater/vapoursynth-mvtools;
+    homepage = "https://github.com/dubhater/vapoursynth-mvtools";
     license  = licenses.gpl2;
     maintainers = with maintainers; [ rnhmjoj ];
   };

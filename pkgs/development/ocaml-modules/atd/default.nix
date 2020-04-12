@@ -4,6 +4,8 @@ buildDunePackage rec {
   pname = "atd";
   version = "2.0.0";
 
+  minimumOCamlVersion = "4.02";
+
   src = fetchFromGitHub {
     owner = "mjambon";
     repo = pname;
@@ -17,7 +19,7 @@ buildDunePackage rec {
   propagatedBuildInputs = [ easy-format biniou yojson ];
 
   meta = with stdenv.lib; {
-    homepage = https://github.com/mjambon/atd;
+    homepage = "https://github.com/mjambon/atd";
     description = "Syntax for cross-language type definitions";
     license = licenses.bsd3;
     maintainers = with maintainers; [ aij jwilberding ];

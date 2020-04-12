@@ -1,35 +1,34 @@
-{ stdenv, lib, fetchurl
+{ config, stdenv, lib, fetchurl, fetchpatch
 , perl
 , libcap, libtool, libxml2, openssl
-, enablePython ? false, python3 ? null
+, enablePython ? config.bind.enablePython or false, python3 ? null
 , enableSeccomp ? false, libseccomp ? null, buildPackages
 }:
 
 assert enableSeccomp -> libseccomp != null;
 assert enablePython -> python3 != null;
 
-let version = "9.12.3-P1"; in
-
 stdenv.mkDerivation rec {
-  name = "bind-${version}";
+  pname = "bind";
+  version = "9.14.11";
 
   src = fetchurl {
-    url = "https://ftp.isc.org/isc/bind9/${version}/${name}.tar.gz";
-    sha256 = "0wzdbn6ig851354cjdys5q3gvqcvl2gmmih1gzr8ldl7sy4r7dvc";
+    url = "https://ftp.isc.org/isc/bind9/${version}/${pname}-${version}.tar.gz";
+    sha256 = "1v4y9308w0gd98gjzni4cgxmh8g1s37lbnnkyhsn70xs3xki5b4c";
   };
 
   outputs = [ "out" "lib" "dev" "man" "dnsutils" "host" ];
 
-  patches = [ ./dont-keep-configure-flags.patch ./remove-mkdir-var.patch ] ++
-    stdenv.lib.optional stdenv.isDarwin ./darwin-openssl-linking-fix.patch;
+  patches = [
+    ./dont-keep-configure-flags.patch
+    ./remove-mkdir-var.patch
+  ];
 
   nativeBuildInputs = [ perl ];
   buildInputs = [ libtool libxml2 openssl ]
     ++ lib.optional stdenv.isLinux libcap
     ++ lib.optional enableSeccomp libseccomp
-    ++ lib.optional enablePython python3;
-
-  STD_CDEFINES = [ "-DDIG_SIGCHASE=1" ]; # support +sigchase
+    ++ lib.optional enablePython (python3.withPackages (ps: with ps; [ ply ]));
 
   depsBuildBuild = [ buildPackages.stdenv.cc ];
 
@@ -64,6 +63,7 @@ stdenv.mkDerivation rec {
     moveToOutput bin/host $host
 
     moveToOutput bin/dig $dnsutils
+    moveToOutput bin/delv $dnsutils
     moveToOutput bin/nslookup $dnsutils
     moveToOutput bin/nsupdate $dnsutils
 
@@ -74,13 +74,13 @@ stdenv.mkDerivation rec {
 
   doCheck = false; # requires root and the net
 
-  meta = {
-    homepage = http://www.isc.org/software/bind;
+  meta = with stdenv.lib; {
+    homepage = "https://www.isc.org/downloads/bind/";
     description = "Domain name server";
-    license = stdenv.lib.licenses.mpl20;
+    license = licenses.mpl20;
 
-    maintainers = with stdenv.lib.maintainers; [peti];
-    platforms = with stdenv.lib.platforms; unix;
+    maintainers = with maintainers; [ peti globin ];
+    platforms = platforms.unix;
 
     outputsToInstall = [ "out" "dnsutils" "host" ];
   };

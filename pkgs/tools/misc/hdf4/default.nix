@@ -8,7 +8,7 @@
 }:
 
 stdenv.mkDerivation rec {
-  name = "hdf-${version}";
+  pname = "hdf";
   version = "4.2.14";
   src = fetchurl {
     url = "https://support.hdfgroup.org/ftp/HDF/releases/HDF${version}/src/hdf-${version}.tar.bz2";
@@ -42,7 +42,6 @@ stdenv.mkDerivation rec {
 
   cmakeFlags = [
     "-DBUILD_SHARED_LIBS=ON"
-    "-DBUILD_TESTING=ON"
     "-DHDF4_BUILD_TOOLS=ON"
     "-DHDF4_BUILD_UTILS=ON"
     "-DHDF4_BUILD_WITH_INSTALL_NAME=OFF"
@@ -64,7 +63,7 @@ stdenv.mkDerivation rec {
     export DYLD_LIBRARY_PATH=$(pwd)/bin
   '';
 
-  excludedTests = [
+  excludedTests = stdenv.lib.optionals stdenv.isDarwin [
     "MFHDF_TEST-hdftest"
     "MFHDF_TEST-hdftest-shared"
     "HDP-dumpsds-18"
@@ -87,7 +86,7 @@ stdenv.mkDerivation rec {
 
   meta = {
     description = "Data model, library, and file format for storing and managing data";
-    homepage = https://support.hdfgroup.org/products/hdf4/;
+    homepage = "https://support.hdfgroup.org/products/hdf4/";
     maintainers = with stdenv.lib.maintainers; [ knedlsepp ];
     platforms = stdenv.lib.platforms.unix;
   };

@@ -1,7 +1,7 @@
 { stdenv, fetchzip }:
 
 let
-  version = "1.206";
+  version = "3";
 in fetchzip {
   name = "fira-code-${version}";
 
@@ -10,12 +10,13 @@ in fetchzip {
   postFetch = ''
     mkdir -p $out/share/fonts
     unzip -j $downloadedFile \*.otf -d $out/share/fonts/opentype
+    unzip -j $downloadedFile \*.ttf -d $out/share/fonts/truetype
   '';
 
-  sha256 = "0074d8q4m802f5yms8yxdx4rdz5xnpgv1w5hs330zg2p9ksicgzy";
+  sha256 = "19kcqqd6c61v137q88zsvf2ra154n009sbqh6zs7l8f7r5bbipj2";
 
   meta = with stdenv.lib; {
-    homepage = https://github.com/tonsky/FiraCode;
+    homepage = "https://github.com/tonsky/FiraCode";
     description = "Monospace font with programming ligatures";
     longDescription = ''
       Fira Code is a monospace font extending the Fira Mono font with

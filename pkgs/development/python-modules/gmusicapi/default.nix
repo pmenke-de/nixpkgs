@@ -20,18 +20,18 @@
 
 buildPythonPackage rec {
   pname = "gmusicapi";
-  version = "11.0.4";
+  version = "13.0.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "b0345df8119c4721cabafff765fe9ded1a246886f5a67b1b306c656b685650b8";
+    sha256 = "14dqs64nhy84dykyyrdjmsirc7m169zsvwa8abh4v0xcm658lm5k";
   };
 
   propagatedBuildInputs = [ validictory decorator mutagen protobuf setuptools requests dateutil proboscis mock appdirs oauth2client pyopenssl gpsoauth MechanicalSoup future ];
 
   meta = with stdenv.lib; {
     description = "An unofficial API for Google Play Music";
-    homepage = https://pypi.python.org/pypi/gmusicapi/;
+    homepage = "https://pypi.python.org/pypi/gmusicapi/";
     license = licenses.bsd3;
   };
 }

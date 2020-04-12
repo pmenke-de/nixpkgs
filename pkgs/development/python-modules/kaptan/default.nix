@@ -2,25 +2,31 @@
 , buildPythonPackage
 , fetchPypi
 , pyyaml
+, pytest
 }:
 
 buildPythonPackage rec {
   pname = "kaptan";
-  version = "0.5.10";
+  version = "0.5.12";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "44df200d030975650a3a832c13b48cafdeb1a237b23de181d6a2346107e39da3";
+    sha256 = "1abd1f56731422fce5af1acc28801677a51e56f5d3c3e8636db761ed143c3dd2";
   };
+
+  postPatch = ''
+    sed -i "s/==.*//g" requirements/test.txt
+  '';
 
   propagatedBuildInputs = [ pyyaml ];
 
+  checkInputs = [ pytest ];
+
   meta = with stdenv.lib; {
     description = "Configuration manager for python applications";
-    homepage = https://emre.github.io/kaptan/;
+    homepage = "https://kaptan.readthedocs.io/";
     license = licenses.bsd3;
-    platforms = platforms.linux;
-    maintainers = with maintainers; [ jgeerds ];
+    maintainers = with maintainers; [ ];
   };
 
 }

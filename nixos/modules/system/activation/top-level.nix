@@ -15,6 +15,7 @@ let
     map (childConfig:
       (import ../../../lib/eval-config.nix {
         inherit baseModules;
+        system = config.nixpkgs.initialSystem;
         modules =
            (optionals inheritParent modules)
         ++ [ ./no-clone.nix ]
@@ -46,8 +47,8 @@ let
 
         ln -s ${kernelPath} $out/kernel
         ln -s ${config.system.modulesTree} $out/kernel-modules
-        ${optionalString (pkgs.stdenv.hostPlatform.platform.kernelDTB or false) ''
-          ln -s ${config.boot.kernelPackages.kernel}/dtbs $out/dtbs
+        ${optionalString (config.hardware.deviceTree.package != null) ''
+          ln -s ${config.hardware.deviceTree.package} $out/dtbs
         ''}
 
         echo -n "$kernelParams" > $out/kernel-params
@@ -74,7 +75,7 @@ let
       echo -n "$configurationName" > $out/configuration-name
       echo -n "systemd ${toString config.systemd.package.interfaceVersion}" > $out/init-interface-version
       echo -n "$nixosLabel" > $out/nixos-version
-      echo -n "${pkgs.stdenv.hostPlatform.system}" > $out/system
+      echo -n "${config.boot.kernelPackages.stdenv.hostPlatform.system}" > $out/system
 
       mkdir $out/fine-tune
       childCount=0
@@ -130,11 +131,9 @@ let
 
   failedAssertions = map (x: x.message) (filter (x: !x.assertion) config.assertions);
 
-  showWarnings = res: fold (w: x: builtins.trace "[1;31mwarning: ${w}[0m" x) res config.warnings;
-
   baseSystemAssertWarn = if failedAssertions != []
     then throw "\nFailed assertions:\n${concatStringsSep "\n" (map (x: "- ${x}") failedAssertions)}"
-    else showWarnings baseSystem;
+    else showWarnings config.warnings baseSystem;
 
   # Replace runtime dependencies
   system = fold ({ oldDependency, newDependency }: drv:

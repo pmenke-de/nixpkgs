@@ -1,34 +1,34 @@
-{ stdenv, fetchurl, cairo, fontconfig, freetype, gdk_pixbuf, glib
+{ stdenv, fetchurl, cairo, fontconfig, freetype, gdk-pixbuf, glib
 , glibc, gtk2, libX11, makeWrapper, nspr, nss, pango, unzip, gconf
 , libXi, libXrender, libXext
 }:
 let
   allSpecs = {
-    "x86_64-linux" = {
+    x86_64-linux = {
       system = "linux64";
-      sha256 = "0x45d2fq01w5v28vipvl4g37ld7d9m8rij9dnwq2zcvyz0rfdfmk";
+      sha256 = "0cx6x5akmawyzm5dmd3xvj9a2vg4dnai1qs1v9p4acw9hai559c8";
     };
 
-    "x86_64-darwin" = {
+    x86_64-darwin = {
       system = "mac64";
-      sha256 = "1blp4ig5fm6ar8mxm78dc2gvv7n82mq3kqswbyjrcizl91qs4cpx";
+      sha256 = "1nh7h2wpljpblwqr0km7nzg3ky5xw6cxqmgdmgvw6qia8bryw1lj";
     };
   };
 
-  spec = allSpecs."${stdenv.hostPlatform.system}"
+  spec = allSpecs.${stdenv.hostPlatform.system}
     or (throw "missing chromedriver binary for ${stdenv.hostPlatform.system}");
 
   libs = stdenv.lib.makeLibraryPath [
     stdenv.cc.cc.lib
     cairo fontconfig freetype
-    gdk_pixbuf glib gtk2 gconf
+    gdk-pixbuf glib gtk2 gconf
     libX11 nspr nss pango libXrender
     gconf libXext libXi
   ];
 in
 stdenv.mkDerivation rec {
-  name = "chromedriver-${version}";
-  version = "2.43";
+  pname = "chromedriver";
+  version = "80.0.3987.16";
 
   src = fetchurl {
     url = "https://chromedriver.storage.googleapis.com/${version}/chromedriver_${spec.system}.zip";
@@ -47,10 +47,10 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with stdenv.lib; {
-    homepage = https://sites.google.com/a/chromium.org/chromedriver;
+    homepage = "https://sites.google.com/a/chromium.org/chromedriver";
     description = "A WebDriver server for running Selenium tests on Chrome";
     license = licenses.bsd3;
-    maintainers = [ maintainers.goibhniu ];
+    maintainers = [ maintainers.goibhniu maintainers.marsam ];
     platforms = attrNames allSpecs;
   };
 }

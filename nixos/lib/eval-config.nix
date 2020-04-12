@@ -41,6 +41,12 @@ let
       # default to the argument. That way this new default could propagate all
       # they way through, but has the last priority behind everything else.
       nixpkgs.system = lib.mkDefault system;
+
+      # Stash the value of the `system` argument. When using `nesting.children`
+      # we want to have the same default value behavior (immediately above)
+      # without any interference from the user's configuration.
+      nixpkgs.initialSystem = system;
+
       _module.args.pkgs = lib.mkIf (pkgs_ != null) (lib.mkForce pkgs_);
     };
   };
@@ -51,17 +57,17 @@ in rec {
   # system configuration.
   inherit (lib.evalModules {
     inherit prefix check;
-    modules = modules ++ extraModules ++ baseModules ++ [ pkgsModule ];
+    modules = baseModules ++ extraModules ++ [ pkgsModule ] ++ modules;
     args = extraArgs;
     specialArgs =
       { modulesPath = builtins.toString ../modules; } // specialArgs;
-  }) config options;
+  }) config options _module;
 
   # These are the extra arguments passed to every module.  In
   # particular, Nixpkgs is passed through the "pkgs" argument.
   extraArgs = extraArgs_ // {
-    inherit modules baseModules;
+    inherit baseModules extraModules modules;
   };
 
-  inherit (config._module.args) pkgs;
+  inherit (_module.args) pkgs;
 }

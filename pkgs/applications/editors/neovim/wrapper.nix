@@ -12,7 +12,8 @@ neovim:
 
 let
   wrapper = {
-      withPython ? true,  extraPythonPackages ? (_: []) /* the function you would have passed to python.withPackages */
+      extraMakeWrapperArgs ? ""
+    , withPython ? true,  extraPythonPackages ? (_: []) /* the function you would have passed to python.withPackages */
     , withPython3 ? true,  extraPython3Packages ? (_: []) /* the function you would have passed to python.withPackages */
     , withNodeJs? false
     , withRuby ? true
@@ -74,8 +75,9 @@ let
         ${optionalString withRuby '' --set GEM_HOME ${rubyEnv}/${rubyEnv.ruby.gemPath}'' }
       ''
       + optionalString (!stdenv.isDarwin) ''
-        # copy and patch the original neovim.desktop file
-        mkdir -p $out/share/applications
+        # copy icon and patch the original neovim.desktop file
+        mkdir -p $out/share/{applications,pixmaps}
+        ln -s ${neovim}/share/pixmaps/nvim.png $out/share/pixmaps/nvim.png
         substitute ${neovim}/share/applications/nvim.desktop $out/share/applications/nvim.desktop \
           --replace 'TryExec=nvim' "TryExec=$out/bin/nvim" \
           --replace 'Name=Neovim' 'Name=WrappedNeovim'
@@ -93,6 +95,16 @@ let
       '' + optionalString (configure != {}) ''
         echo "Generating remote plugin manifest"
         export NVIM_RPLUGIN_MANIFEST=$out/rplugin.vim
+        # Some plugins assume that the home directory is accessible for
+        # initializing caches, temporary files, etc. Even if the plugin isn't
+        # actively used, it may throw an error as soon as Neovim is launched
+        # (e.g., inside an autoload script), causing manifest generation to
+        # fail. Therefore, let's create a fake home directory before generating
+        # the manifest, just to satisfy the needs of these plugins.
+        #
+        # See https://github.com/Yggdroot/LeaderF/blob/v1.21/autoload/lfMru.vim#L10
+        # for an example of this behavior.
+        export HOME="$(mktemp -d)"
         # Launch neovim with a vimrc file containing only the generated plugin
         # code. Pass various flags to disable temp file generation
         # (swap/viminfo) and redirect errors to stderr.
@@ -113,7 +125,7 @@ let
         # https://github.com/neovim/neovim/issues/9413
         wrapProgram $out/bin/nvim \
           --set NVIM_SYSTEM_RPLUGIN_MANIFEST $out/rplugin.vim \
-          --add-flags "-u ${vimUtils.vimrcFile configure}"
+          --add-flags "-u ${vimUtils.vimrcFile configure}" ${extraMakeWrapperArgs}
       '';
 
     preferLocalBuild = true;

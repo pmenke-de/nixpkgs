@@ -3,7 +3,7 @@
 with stdenv.lib;
 
 let repo = "openfortivpn";
-    version = "1.7.1";
+    version = "1.13.1";
 
 in stdenv.mkDerivation {
   name = "${repo}-${version}";
@@ -12,7 +12,7 @@ in stdenv.mkDerivation {
     owner = "adrienverge";
     inherit repo;
     rev = "v${version}";
-    sha256 = "01nsgmmh72qk0aq2zdjh8qqn256mmvz1w2gl0wi7g29d82y2hdfm";
+    sha256 = "1sfqi169xf0wmlpzri9frkgsh99fgjvcpbdkd42vsm10qa1dnpk5";
   };
 
   nativeBuildInputs = [ autoreconfHook pkgconfig ];
@@ -20,15 +20,13 @@ in stdenv.mkDerivation {
 
   NIX_CFLAGS_COMPILE = "-Wno-error=unused-function";
 
-  preConfigure = ''
-    substituteInPlace src/tunnel.c --replace "/usr/sbin/pppd" "${ppp}/bin/pppd"
-  '';
+  configureFlags = [ "--with-pppd=${ppp}/bin/pppd" ];
 
   enableParallelBuilding = true;
 
   meta = {
     description = "Client for PPP+SSL VPN tunnel services";
-    homepage = https://github.com/adrienverge/openfortivpn;
+    homepage = "https://github.com/adrienverge/openfortivpn";
     license = stdenv.lib.licenses.gpl3;
     maintainers = [ stdenv.lib.maintainers.madjar ];
     platforms = stdenv.lib.platforms.linux;

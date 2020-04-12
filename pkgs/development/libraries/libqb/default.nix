@@ -11,10 +11,9 @@ stdenv.mkDerivation rec{
   nativeBuildInputs = [ pkgconfig ];
 
   meta = with stdenv.lib; {
-    homepage = https://github.com/clusterlabs/libqb;
+    homepage = "https://github.com/clusterlabs/libqb";
     description = "A library providing high performance logging, tracing, ipc, and poll";
     license = licenses.lgpl21;
     platforms = platforms.unix;
-    maintainers = with maintainers; [ wkennington ];
   };
 }

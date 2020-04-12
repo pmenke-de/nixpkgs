@@ -1,22 +1,22 @@
-{ stdenv, intltool, fetchurl, webkitgtk, pkgconfig, gtk3, glib
+{ stdenv, gettext, fetchurl, webkitgtk, pkgconfig, gtk3, glib
 , gnome3, sqlite
 , itstool, libxml2, libxslt, gst_all_1
 , wrapGAppsHook }:
 
 stdenv.mkDerivation rec {
-  name = "yelp-${version}";
-  version = "3.30.0";
+  pname = "yelp";
+  version = "3.36.0";
 
   src = fetchurl {
-    url = "mirror://gnome/sources/yelp/${stdenv.lib.versions.majorMinor version}/${name}.tar.xz";
-    sha256 = "060a902j15k76fyhk8xfl38ipvrrcc0qd7nm2mcck4ifb45b0zv4";
+    url = "mirror://gnome/sources/yelp/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
+    sha256 = "097djjyl096zmicjpxlb858yz6rd5cj813xc8azbxlhsscikwjzx";
   };
 
-  nativeBuildInputs = [ pkgconfig intltool itstool wrapGAppsHook ];
+  nativeBuildInputs = [ pkgconfig gettext itstool wrapGAppsHook ];
   buildInputs = [
     gtk3 glib webkitgtk sqlite
     libxml2 libxslt gnome3.yelp-xsl
-    gnome3.defaultIconTheme
+    gnome3.adwaita-icon-theme
     gst_all_1.gst-plugins-base gst_all_1.gst-plugins-good
   ];
 
@@ -27,7 +27,7 @@ stdenv.mkDerivation rec {
   };
 
   meta = with stdenv.lib; {
-    homepage = https://wiki.gnome.org/Apps/Yelp;
+    homepage = "https://wiki.gnome.org/Apps/Yelp";
     description = "The help viewer in Gnome";
     maintainers = gnome3.maintainers;
     license = licenses.gpl2;

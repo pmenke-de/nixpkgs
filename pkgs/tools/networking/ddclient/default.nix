@@ -1,11 +1,11 @@
-{ stdenv, fetchurl, perlPackages, iproute }:
+{ stdenv, fetchurl, perlPackages, iproute, perl }:
 
 perlPackages.buildPerlPackage rec {
-  name = "ddclient-${version}";
+  pname = "ddclient";
   version = "3.9.0";
 
   src = fetchurl {
-    url = "mirror://sourceforge/ddclient/${name}.tar.gz";
+    url = "mirror://sourceforge/ddclient/${pname}-${version}.tar.gz";
     sha256 = "0fwyhab8yga2yi1kdfkbqxa83wxhwpagmj1w1mwkg2iffh1fjjlw";
   };
 
@@ -19,8 +19,9 @@ perlPackages.buildPerlPackage rec {
     touch Makefile.PL
     substituteInPlace ddclient \
       --replace 'in the output of ifconfig' 'in the output of ip addr show' \
-      --replace 'ifconfig -a'               '${iproute}/sbin/ip addr show' \
-      --replace 'ifconfig $arg'             '${iproute}/sbin/ip addr show $arg'
+      --replace 'ifconfig -a' '${iproute}/sbin/ip addr show' \
+      --replace 'ifconfig $arg' '${iproute}/sbin/ip addr show $arg' \
+      --replace '/usr/bin/perl' '${perl}/bin/perl' # Until we get the patchShebangs fixed (issue #55786) we need to patch this manually
   '';
 
   installPhase = ''
@@ -37,7 +38,7 @@ perlPackages.buildPerlPackage rec {
 
   meta = with stdenv.lib; {
     description = "Client for updating dynamic DNS service entries";
-    homepage    = https://sourceforge.net/p/ddclient/wiki/Home/;
+    homepage    = "https://sourceforge.net/p/ddclient/wiki/Home/";
     license     = licenses.gpl2Plus;
     # Mostly since `iproute` is Linux only.
     platforms   = platforms.linux;

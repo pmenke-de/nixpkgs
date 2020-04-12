@@ -33,12 +33,12 @@ buildPythonPackage rec {
 
   checkPhase = ''
     redis-server &
-    nosetests .
+    nosetests . --exclude test_worker_pids
   '';
 
   meta = with stdenv.lib; {
     description = "Python resque clone";
-    homepage = https://github.com/binarydud/pyres;
+    homepage = "https://github.com/binarydud/pyres";
     license = licenses.mit;
     maintainers = with maintainers; [ jluttine ];
   };

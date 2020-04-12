@@ -5,16 +5,15 @@
 , psutil
 , pyopenssl
 , pysendfile
-, python
 }:
 
 buildPythonPackage rec {
-  version = "1.5.4";
+  version = "1.5.6";
   pname = "pyftpdlib";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "e5fca613978743d41c3bfc68e25a811d646a3b8a9eee9eb07021daca89646a0f";
+    sha256 = "0pnv2byzmzg84q5nmmhn1xafvfil85qa5y52bj455br93zc5b9px";
   };
 
   checkInputs = [ mock psutil ];
@@ -25,7 +24,7 @@ buildPythonPackage rec {
   doCheck = false;
 
   meta = with stdenv.lib; {
-    homepage = https://github.com/giampaolo/pyftpdlib/;
+    homepage = "https://github.com/giampaolo/pyftpdlib/";
     description = "Very fast asynchronous FTP server library";
     license = licenses.mit;
     maintainers = [ maintainers.costrouc ];

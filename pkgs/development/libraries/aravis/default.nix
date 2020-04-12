@@ -1,5 +1,5 @@
 { stdenv, fetchFromGitHub, autoreconfHook, pkgconfig, gtk-doc, intltool
-, audit, glib, libusb, libxml2
+, audit, glib, libusb1, libxml2
 , wrapGAppsHook
 , gstreamer ? null
 , gst-plugins-base ? null
@@ -7,6 +7,7 @@
 , gst-plugins-bad ? null
 , libnotify ? null
 , gnome3 ? null
+, gtk3 ? null
 , enableUsb ? true
 , enablePacketSocket ? true
 , enableViewer ? true
@@ -26,19 +27,19 @@ in
   assert enableViewer -> enableGstPlugin;
   assert enableViewer -> libnotify != null;
   assert enableViewer -> gnome3 != null;
+  assert enableViewer -> gtk3 != null;
   assert enableViewer -> gstreamerAtLeastVersion1;
 
   stdenv.mkDerivation rec {
 
     pname = "aravis";
-    version = "0.5.13";
-    name = "${pname}-${version}";
+    version = "0.6.4";
 
     src = fetchFromGitHub {
       owner = "AravisProject";
-      repo = "aravis";
-      rev= "c56e530b8ef53b84e17618ea2f334d2cbae04f48";
-      sha256 = "1dj24dir239zmiscfhyy1m8z5rcbw0m1vx9lipx0r7c39bzzj5gy";
+      repo = pname;
+      rev= "ARAVIS_${builtins.replaceStrings ["."] ["_"] version}";
+      sha256 = "18fnliks661kzc3g8v08hcaj18hjid8b180d6s9gwn0zgv4g374w";
     };
 
     outputs = [ "bin" "dev" "out" "lib" ];
@@ -52,10 +53,10 @@ in
 
     buildInputs =
       [ glib libxml2 ]
-      ++ stdenv.lib.optional enableUsb libusb
+      ++ stdenv.lib.optional enableUsb libusb1
       ++ stdenv.lib.optional enablePacketSocket audit
       ++ stdenv.lib.optionals (enableViewer || enableGstPlugin) [ gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad ]
-      ++ stdenv.lib.optionals (enableViewer) [ libnotify gnome3.gtk3 gnome3.defaultIconTheme ];
+      ++ stdenv.lib.optionals (enableViewer) [ libnotify gtk3 gnome3.adwaita-icon-theme ];
 
     preAutoreconf = ''./autogen.sh'';
 
@@ -80,7 +81,7 @@ in
       longDescription = ''
         Implements the gigabit ethernet and USB3 protocols used by industrial cameras.
       '';
-      homepage = https://aravisproject.github.io/docs/aravis-0.5;
+      homepage = "https://aravisproject.github.io/docs/aravis-0.5";
       license = stdenv.lib.licenses.lgpl2;
       maintainers = [];
       platforms = stdenv.lib.platforms.unix;

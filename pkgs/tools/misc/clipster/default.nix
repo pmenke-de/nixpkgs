@@ -2,14 +2,14 @@
  gobject-introspection, wrapGAppsHook }:
 
 stdenv.mkDerivation  rec {
-  name = "clipster-${version}";
-  version = "2.0.1";
+  pname = "clipster";
+  version = "2.0.2";
 
   src = fetchFromGitHub {
     owner = "mrichar1";
     repo = "clipster";
-    rev = "${version}";
-    sha256 = "08zs7yjpjc6haddkwx7sq5vyq2ldy455qlcrx1a3vi7krmdwl1q9";
+    rev = version;
+    sha256 = "0582r8840dk4k4jj1zq6kmyh7z9drcng099bj7f4wvr468nb9z1p";
   };
 
   pythonEnv = python3.withPackages(ps: with ps; [ pygobject3 ]);
@@ -43,7 +43,7 @@ stdenv.mkDerivation  rec {
       - Ability to delete items in clipboard history.
     '';
     license = licenses.agpl3;
-    homepage = https://github.com/mrichar1/clipster;
+    homepage = "https://github.com/mrichar1/clipster";
     platforms = platforms.linux;
     maintainers = [ maintainers.magnetophon ];
   };

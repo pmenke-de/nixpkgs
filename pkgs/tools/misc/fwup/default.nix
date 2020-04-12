@@ -3,14 +3,14 @@
 , libarchive, darwin, coreutils }:
 
 stdenv.mkDerivation rec {
-  name = "fwup-${version}";
-  version = "1.2.7";
+  pname = "fwup";
+  version = "1.5.2";
 
   src = fetchFromGitHub {
     owner = "fhunleth";
     repo = "fwup";
     rev = "v${version}";
-    sha256 = "0r48l5jcb4pxb72ykigmaissm4ikadi7f6lkfma4jnd037w15bnl";
+    sha256 = "05sjdlh450hk474a44yr6kz9dzx72jfxpi1krxbd0pdizlmfypsg";
   };
 
   doCheck = true;
@@ -25,7 +25,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Configurable embedded Linux firmware update creator and runner";
-    homepage = https://github.com/fhunleth/fwup;
+    homepage = "https://github.com/fhunleth/fwup";
     license = licenses.asl20;
     maintainers = [ maintainers.georgewhewell ];
     platforms = platforms.all;

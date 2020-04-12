@@ -1,10 +1,15 @@
 { stdenv
 , buildPythonPackage
 , fetchPypi
-, fetchpatch
 , requests
 , pytz
 , tzlocal
+, i3ipc
+, pydbus
+, pygobject3
+, pyserial
+, setuptools
+, dbus-python
 
 , file
 , acpi
@@ -19,15 +24,17 @@
 
 buildPythonPackage rec {
   pname = "py3status";
-  version = "3.15";
-  
+  version = "3.22";
+
   src = fetchPypi {
     inherit pname version;
-    sha256 = "78aa7fa0af707641e215ea93bfd4bb5fd47f18a7193d84ed60bb9e6cccb75b7f";
+    sha256 = "5e9884dde128e1bd82f8746e8f8806c8d7d89d95ce9ed7bacf7cc5fdb094aa21";
   };
 
   doCheck = false;
-  propagatedBuildInputs = [ pytz requests tzlocal ];
+  propagatedBuildInputs = [
+    pytz requests tzlocal i3ipc pydbus pygobject3 pyserial setuptools dbus-python
+  ];
   buildInputs = [ file ];
   prePatch = ''
     sed -i -e "s|'file|'${file}/bin/file|" py3status/parse_config.py
@@ -45,7 +52,7 @@ buildPythonPackage rec {
   meta = with stdenv.lib; {
     description = "Extensible i3status wrapper";
     license = licenses.bsd3;
-    homepage = https://github.com/ultrabug/py3status;
-    maintainers = with maintainers; [ garbas ];
+    homepage = "https://github.com/ultrabug/py3status";
+    maintainers = with maintainers; [ ];
   };
 }

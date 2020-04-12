@@ -1,22 +1,33 @@
-{ stdenv, fetchurl, intltool, pkgconfig, glib, gobject-introspection }:
+{ stdenv, fetchurl, pkgconfig, gettext, glib, gobject-introspection, gnome3 }:
 
 stdenv.mkDerivation rec {
   pname = "gnome-menus";
-  version = "3.31.3";
+  version = "3.36.0";
 
   src = fetchurl {
     url = "mirror://gnome/sources/${pname}/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    sha256 = "11i5m0w15by1k8d94xla54nr4r8nnb63wk6iq0dzki4cv5d55qgw";
+    sha256 = "07xvaf8s0fiv0035nk8zpzymn5www76w2a1vflrgqmp9plw8yd6r";
   };
 
-  makeFlags = "INTROSPECTION_GIRDIR=$(out)/share/gir-1.0/ INTROSPECTION_TYPELIBDIR=$(out)/lib/girepository-1.0";
+  makeFlags = [
+    "INTROSPECTION_GIRDIR=${placeholder "out"}/share/gir-1.0/"
+    "INTROSPECTION_TYPELIBDIR=${placeholder "out"}/lib/girepository-1.0"
+  ];
 
-  nativeBuildInputs = [ pkgconfig ];
-  buildInputs = [ intltool glib gobject-introspection ];
+  nativeBuildInputs = [ pkgconfig gettext ];
+  buildInputs = [ glib gobject-introspection ];
 
-  meta = {
-    homepage = https://www.gnome.org;
+  passthru = {
+    updateScript = gnome3.updateScript {
+      packageName = pname;
+      versionPolicy = "none";
+    };
+  };
+
+  meta = with stdenv.lib; {
+    homepage = "https://gitlab.gnome.org/GNOME/gnome-menus";
     description = "Library that implements freedesktops's Desktop Menu Specification in GNOME";
-    platforms = stdenv.lib.platforms.linux;
+    license = with licenses; [ gpl2 lgpl2 ];
+    platforms = platforms.linux;
   };
 }

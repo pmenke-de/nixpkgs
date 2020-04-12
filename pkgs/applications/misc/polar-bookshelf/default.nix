@@ -1,6 +1,6 @@
 { stdenv, lib, makeWrapper, fetchurl
 , dpkg, wrapGAppsHook, autoPatchelfHook
-, gtk3, cairo, gnome2, atk, gdk_pixbuf, glib
+, gtk3, cairo, gnome2, atk, gdk-pixbuf, glib
 , at-spi2-atk, dbus, libX11, libxcb, libXi
 , libXcursor, libXdamage, libXrandr, libXcomposite
 , libXext, libXfixes, libXrender, libXtst, libXScrnSaver
@@ -9,13 +9,13 @@
 
 
 stdenv.mkDerivation rec {
-  name = "polar-bookshelf-${version}";
-  version = "1.8.0";
+  pname = "polar-bookshelf";
+  version = "1.13.10";
 
   # fetching a .deb because there's no easy way to package this Electron app
   src = fetchurl {
     url = "https://github.com/burtonator/polar-bookshelf/releases/download/v${version}/polar-bookshelf-${version}-amd64.deb";
-    sha256 = "0zbk8msc5p6ivldkznab8klzsgd31hd4hs5kkjzw1iy082cmrjv5";
+    sha256 = "1bxcyf6n2m5x1z8ic6kzskinyyc6lh6nj0bycbwc524n6ms5j99p";
   };
 
   buildInputs = [
@@ -25,7 +25,7 @@ stdenv.mkDerivation rec {
     cairo
     gnome2.pango
     atk
-    gdk_pixbuf
+    gdk-pixbuf
     at-spi2-atk
     dbus
     libX11
@@ -48,10 +48,10 @@ stdenv.mkDerivation rec {
     expat
   ];
 
-  nativeBuildInputs = [ 
+  nativeBuildInputs = [
     wrapGAppsHook
     autoPatchelfHook
-    makeWrapper 
+    makeWrapper
     dpkg
   ];
 
@@ -70,7 +70,7 @@ stdenv.mkDerivation rec {
     mv usr/share/* $out/share/
 
     ln -s $out/share/polar-bookshelf/polar-bookshelf $out/bin/polar-bookshelf
-    
+
     # Correct desktop file `Exec`
     substituteInPlace $out/share/applications/polar-bookshelf.desktop \
       --replace "/opt/Polar Bookshelf/polar-bookshelf" "$out/bin/polar-bookshelf"
@@ -81,7 +81,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = {
-    homepage = https://getpolarized.io/;
+    homepage = "https://getpolarized.io/";
     description = "Personal knowledge repository for PDF and web content supporting incremental reading and document annotation";
     license = stdenv.lib.licenses.gpl3;
     platforms = stdenv.lib.platforms.linux;

@@ -1,17 +1,37 @@
-{ stdenv, meson, ninja, gettext, fetchurl, pkgconfig
-, wrapGAppsHook, itstool, desktop-file-utils, python3
-, glib, gtk3, evolution-data-server
-, libuuid, webkitgtk, zeitgeist
-, gnome3, libxml2 }:
+{ stdenv
+, meson
+, ninja
+, gettext
+, fetchurl
+, pkgconfig
+, wrapGAppsHook
+, itstool
+, desktop-file-utils
+, python3
+, glib
+, gtk3
+, evolution-data-server
+, gnome-online-accounts
+, libuuid
+, libhandy
+, webkitgtk
+, zeitgeist
+, gnome3
+, libxml2
+, gsettings-desktop-schemas
+, tracker
+}:
 
 let
-  version = "3.30.3";
-in stdenv.mkDerivation rec {
-  name = "gnome-notes-${version}";
+  version = "3.36.1";
+in
+stdenv.mkDerivation {
+  pname = "gnome-notes";
+  inherit version;
 
   src = fetchurl {
     url = "mirror://gnome/sources/bijiben/${stdenv.lib.versions.majorMinor version}/bijiben-${version}.tar.xz";
-    sha256 = "1mkpi2i9nqpip5l15ihjcscyiri113s0705sjgh6b89164ahyn5k";
+    sha256 = "0421g9czdahk2w2kv7zg4gd9b4q8g1hl483jsfrxy5y7saincbr1";
   };
 
   doCheck = true;
@@ -22,15 +42,29 @@ in stdenv.mkDerivation rec {
   '';
 
   nativeBuildInputs = [
-    meson ninja pkgconfig gettext itstool libxml2 desktop-file-utils python3 wrapGAppsHook
+    meson
+    ninja
+    pkgconfig
+    gettext
+    itstool
+    libxml2
+    desktop-file-utils
+    python3
+    wrapGAppsHook
   ];
 
   buildInputs = [
-    glib gtk3 libuuid webkitgtk gnome3.tracker
-    gnome3.gnome-online-accounts zeitgeist
-    gnome3.gsettings-desktop-schemas
+    glib
+    gtk3
+    libuuid
+    libhandy
+    webkitgtk
+    tracker
+    gnome-online-accounts
+    zeitgeist
+    gsettings-desktop-schemas
     evolution-data-server
-    gnome3.defaultIconTheme
+    gnome3.adwaita-icon-theme
   ];
 
   mesonFlags = [
@@ -47,7 +81,7 @@ in stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Note editor designed to remain simple to use";
-    homepage = https://wiki.gnome.org/Apps/Notes;
+    homepage = "https://wiki.gnome.org/Apps/Notes";
     license = licenses.gpl3;
     maintainers = gnome3.maintainers;
     platforms = platforms.linux;

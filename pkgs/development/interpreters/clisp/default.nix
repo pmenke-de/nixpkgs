@@ -94,10 +94,11 @@ stdenv.mkDerivation rec {
 
   meta = {
     description = "ANSI Common Lisp Implementation";
-    homepage = http://clisp.cons.org;
+    homepage = "http://clisp.cons.org";
     maintainers = with stdenv.lib.maintainers; [raskin tohl];
     platforms = stdenv.lib.platforms.unix;
     # problems on Darwin: https://github.com/NixOS/nixpkgs/issues/20062
     broken = stdenv.hostPlatform.isDarwin || stdenv.hostPlatform.isAarch64;
+    license = stdenv.lib.licenses.gpl2;
   };
 }

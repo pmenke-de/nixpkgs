@@ -5,11 +5,9 @@
 , hicolor-icon-theme
 }:
 
-let
+stdenv.mkDerivation rec {
   pname = "libhandy";
-  version = "0.0.7";
-in stdenv.mkDerivation rec {
-  name = "${pname}-${version}";
+  version = "0.0.13";
 
   outputs = [ "out" "dev" "devdoc" "glade" ];
   outputBin = "dev";
@@ -19,11 +17,11 @@ in stdenv.mkDerivation rec {
     owner = "Librem5";
     repo = pname;
     rev = "v${version}";
-    sha256 = "1k9v6q2dz9x8lfcyzmsksrkq6md7m9jdkjlfan7nqlcj3mqhd7m9";
+    sha256 = "1y23k623sjkldfrdiwfarpchg5mg58smcy1pkgnwfwca15wm1ra5";
   };
 
   nativeBuildInputs = [
-    meson ninja pkgconfig gobject-introspection vala
+    meson ninja pkgconfig gobject-introspection vala libxml2
     gtk-doc docbook_xsl docbook_xml_dtd_43
   ];
   buildInputs = [ gnome3.gnome-desktop gtk3 gnome3.glade libxml2 ];
@@ -41,15 +39,16 @@ in stdenv.mkDerivation rec {
   doCheck = true;
 
   checkPhase = ''
-    export NO_AT_BRIDGE=1
+    NO_AT_BRIDGE=1 \
+    XDG_DATA_DIRS="$XDG_DATA_DIRS:${hicolor-icon-theme}/share" \
     xvfb-run -s '-screen 0 800x600x24' dbus-run-session \
       --config-file=${dbus.daemon}/share/dbus-1/session.conf \
       meson test --print-errorlogs
   '';
 
   meta = with stdenv.lib; {
-    description = "A library full of GTK+ widgets for mobile phones";
-    homepage = https://source.puri.sm/Librem5/libhandy;
+    description = "A library full of GTK widgets for mobile phones";
+    homepage = "https://source.puri.sm/Librem5/libhandy";
     license = licenses.lgpl21Plus;
     maintainers = with maintainers; [ jtojnar ];
     platforms = platforms.linux;

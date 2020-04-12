@@ -22,8 +22,9 @@ let
       install -D bin-linux/QtnPEG $out/bin/QtnPEG
     '';
   };
-in stdenv.mkDerivation rec {
-  name = "awesomebump-${version}";
+in stdenv.mkDerivation {
+  pname = "awesomebump";
+  inherit version;
 
   inherit src;
 
@@ -52,7 +53,7 @@ in stdenv.mkDerivation rec {
   enableParallelBuilding = false;
 
   meta = {
-    homepage = https://github.com/kmkolasinski/AwesomeBump;
+    homepage = "https://github.com/kmkolasinski/AwesomeBump";
     description = "A program to generate normal, height, specular or ambient occlusion textures from a single image";
     license = lib.licenses.gpl3Plus;
     maintainers = [ lib.maintainers.eelco ];

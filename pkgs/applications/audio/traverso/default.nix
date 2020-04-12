@@ -2,13 +2,13 @@
 , alsaLib, fftw, flac, lame, libjack2, libmad, libpulseaudio
 , libsamplerate, libsndfile, libvorbis, portaudio, qtbase, wavpack
 }:
-stdenv.mkDerivation rec {
-  name = "traverso-${version}";
-  version = "0.49.5";
+stdenv.mkDerivation {
+  pname = "traverso";
+  version = "0.49.6";
 
   src = fetchurl {
-    url = "http://traverso-daw.org/traverso-0.49.5.tar.gz";
-    sha256 = "169dsqrf807ciavrd82d3iil0xy0r3i1js08xshcrn80ws9hv63m";
+    url = "https://traverso-daw.org/traverso-0.49.6.tar.gz";
+    sha256 = "12f7x8kw4fw1j0xkwjrp54cy4cv1ql0zwz2ba5arclk4pf6bhl7q";
   };
 
   nativeBuildInputs = [ cmake pkgconfig ];
@@ -23,7 +23,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Cross-platform multitrack audio recording and audio editing suite";
-    homepage = http://traverso-daw.org/;
+    homepage = "https://traverso-daw.org/";
     license = with licenses; [ gpl2Plus lgpl21Plus ];
     platforms = platforms.all;
     maintainers = with maintainers; [ coconnor ];

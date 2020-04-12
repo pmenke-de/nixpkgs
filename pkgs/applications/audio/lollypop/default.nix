@@ -1,11 +1,29 @@
-{ stdenv, fetchgit, meson, ninja, pkgconfig
-, python3, gtk3, gst_all_1, libsecret, libsoup
-, appstream-glib, desktop-file-utils, totem-pl-parser
-, gobject-introspection, wrapGAppsHook }:
+{ lib
+, fetchgit
+, meson
+, ninja
+, pkgconfig
+, python3
+, gtk3
+, gst_all_1
+, libsecret
+, libsoup
+, appstream-glib
+, desktop-file-utils
+, totem-pl-parser
+, gobject-introspection
+, glib-networking
+, gdk-pixbuf
+, glib
+, pango
+, wrapGAppsHook
+, lastFMSupport ? true
+, youtubeSupport ? true
+}:
 
 python3.pkgs.buildPythonApplication rec  {
   pname = "lollypop";
-  version = "0.9.909";
+  version = "1.2.32";
 
   format = "other";
   doCheck = false;
@@ -14,10 +32,10 @@ python3.pkgs.buildPythonApplication rec  {
     url = "https://gitlab.gnome.org/World/lollypop";
     rev = "refs/tags/${version}";
     fetchSubmodules = true;
-    sha256 = "19d82dy0wprabg5kzcgs3ydmp9iz3h437n55cnlp20mbpya09k7n";
+    sha256 = "03x6qihd349pq5lmgahb77sys60g16v5v6qkdlzf8k88451k8p7n";
   };
 
-  nativeBuildInputs = with python3.pkgs; [
+  nativeBuildInputs = [
     appstream-glib
     desktop-file-utils
     gobject-introspection
@@ -28,6 +46,9 @@ python3.pkgs.buildPythonApplication rec  {
   ];
 
   buildInputs = with gst_all_1; [
+    gdk-pixbuf
+    glib
+    glib-networking
     gst-libav
     gst-plugins-bad
     gst-plugins-base
@@ -35,34 +56,45 @@ python3.pkgs.buildPythonApplication rec  {
     gst-plugins-ugly
     gstreamer
     gtk3
-    libsecret
     libsoup
+    pango
     totem-pl-parser
-  ];
+  ] ++ lib.optional lastFMSupport libsecret;
 
   propagatedBuildInputs = with python3.pkgs; [
     beautifulsoup4
-    gst-python
     pillow
     pycairo
-    pydbus
     pygobject3
-    pylast
-  ];
+  ]
+  ++ lib.optional lastFMSupport pylast
+  ++ lib.optional youtubeSupport youtube-dl
+  ;
 
   postPatch = ''
     chmod +x meson_post_install.py
     patchShebangs meson_post_install.py
   '';
 
-  preFixup = ''
-    buildPythonPath "$out $propagatedBuildInputs"
-    patchPythonScript "$out/libexec/lollypop-sp"
+  postFixup = ''
+    wrapPythonProgramsIn $out/libexec "$out $propagatedBuildInputs"
   '';
 
-  meta = with stdenv.lib; {
+  strictDeps = false;
+
+  # Produce only one wrapper using wrap-python passing
+  # gappsWrapperArgs to wrap-python additional wrapper
+  # argument
+  dontWrapGApps = true;
+
+  preFixup = ''
+    makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
+  '';
+
+  meta = with lib; {
+    changelog = "https://gitlab.gnome.org/World/lollypop/tags/${version}";
     description = "A modern music player for GNOME";
-    homepage = https://wiki.gnome.org/Apps/Lollypop;
+    homepage = "https://wiki.gnome.org/Apps/Lollypop";
     license = licenses.gpl3Plus;
     maintainers = with maintainers; [ worldofpeace ];
     platforms = platforms.linux;

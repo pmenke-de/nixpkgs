@@ -3,9 +3,9 @@
 , mpi ? null, scalapack
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   version = "4.1-b3";
-  name = "siesta-${version}";
+  pname = "siesta";
 
   src = fetchurl {
     url = "https://launchpad.net/siesta/4.1/4.1-b3/+download/siesta-4.1-b3.tar.gz";
@@ -61,7 +61,7 @@ stdenv.mkDerivation rec {
          matching the quality of other approaches, such as plane-wave
          and all-electron methods.
       '';
-    homepage = https://www.quantum-espresso.org/;
+    homepage = "https://www.quantum-espresso.org/";
     license = licenses.gpl2;
     platforms = [ "x86_64-linux" ];
     maintainers = [ maintainers.costrouc ];

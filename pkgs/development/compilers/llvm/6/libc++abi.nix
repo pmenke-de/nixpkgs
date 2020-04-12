@@ -1,7 +1,8 @@
 { stdenv, cmake, fetch, libcxx, libunwind, llvm, version }:
 
 stdenv.mkDerivation {
-  name = "libc++abi-${version}";
+  pname = "libc++abi";
+  inherit version;
 
   src = fetch "libcxxabi" "0prqvdj317qrc8nddaq1hh2ag9algkd9wbkj3y4mr5588k12x7r0";
 
@@ -41,7 +42,7 @@ stdenv.mkDerivation {
     '';
 
   meta = {
-    homepage = http://libcxxabi.llvm.org/;
+    homepage = "http://libcxxabi.llvm.org/";
     description = "A new implementation of low level support for a standard C++ library";
     license = with stdenv.lib.licenses; [ ncsa mit ];
     maintainers = with stdenv.lib.maintainers; [ vlstill ];

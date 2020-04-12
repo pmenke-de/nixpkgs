@@ -19,13 +19,13 @@ in
     checkInputs = with python3Packages; [ vcrpy mock hiro ];
     buildInputs = [ libffi openssl ];
     propagatedBuildInputs = with python3Packages; [
-      argparse ordereddict requests six suds-jurko termcolor keyring
+      ordereddict requests six suds-jurko termcolor keyring
       jira  keyrings-alt
     ];
 
     meta = with stdenv.lib; {
       description = "A command line interface to Jira";
-      homepage = https://github.com/alisaifee/jira-cli;
+      homepage = "https://github.com/alisaifee/jira-cli";
       maintainers = with maintainers; [ nyarly ];
       license = licenses.mit;
     };

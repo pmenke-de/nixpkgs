@@ -2,16 +2,16 @@
 , gettext, itstool, libxml2, python3, gnome3, glib, gtk3, librsvg }:
 
 stdenv.mkDerivation rec {
-  name = "gnome-chess-${version}";
-  version = "3.30.0";
+  pname = "gnome-chess";
+  version = "3.36.0";
 
   src = fetchurl {
-    url = "mirror://gnome/sources/gnome-chess/${stdenv.lib.versions.majorMinor version}/${name}.tar.xz";
-    sha256 = "153wwh0861qfg53myyc3iwlqm989lbhdrlmsxaibmkxv3pgpl7ma";
+    url = "mirror://gnome/sources/gnome-chess/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
+    sha256 = "1a9fgi749gy1f60vbcyrqqkab9vqs42hji70q73k1xx8rv0agmg0";
   };
 
   nativeBuildInputs = [ meson ninja vala pkgconfig gettext itstool libxml2 python3 wrapGAppsHook gobject-introspection ];
-  buildInputs = [ glib gtk3 librsvg gnome3.defaultIconTheme ];
+  buildInputs = [ glib gtk3 librsvg gnome3.adwaita-icon-theme ];
 
   postPatch = ''
     chmod +x meson_post_install.py
@@ -26,7 +26,7 @@ stdenv.mkDerivation rec {
   };
 
   meta = with stdenv.lib; {
-    homepage = https://wiki.gnome.org/Apps/Chess;
+    homepage = "https://wiki.gnome.org/Apps/Chess";
     description = "Play the classic two-player boardgame of chess";
     maintainers = gnome3.maintainers;
     license = licenses.gpl2;

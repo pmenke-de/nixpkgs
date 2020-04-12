@@ -1,9 +1,12 @@
-{ stdenv, fetchurl, makeFontsConf, makeWrapper
+{ stdenv, fetchurl, makeFontsConf
+, cacert
 , cairo, coreutils, fontconfig, freefont_ttf
 , glib, gmp
 , gtk3
 , libedit, libffi
 , libiconv
+, libGL
+, libGLU
 , libjpeg
 , libpng, libtool, mpfr, openssl, pango, poppler
 , readline, sqlite
@@ -27,6 +30,8 @@ let
     gtk3
     gsettings-desktop-schemas
     libedit
+    libGL
+    libGLU
     libjpeg
     libpng
     mpfr
@@ -40,17 +45,17 @@ let
 in
 
 stdenv.mkDerivation rec {
-  name = "racket-${version}";
-  version = "7.1"; # always change at once with ./minimal.nix
+  pname = "racket";
+  version = "7.6"; # always change at once with ./minimal.nix
 
   src = (stdenv.lib.makeOverridable ({ name, sha256 }:
-    fetchurl rec {
+    fetchurl {
       url = "https://mirror.racket-lang.org/installers/${version}/${name}-src.tgz";
       inherit sha256;
     }
   )) {
-    inherit name;
-    sha256 = "180z0z6srzyipi9wfnbh61nbvzxr5d1cls7wxapv6fw92y52jwz9";
+    name = "${pname}-${version}";
+    sha256 = "0yagy7qrnz96gwafnj3whh2vs54788k1ci3vkm100h68gsw638b8";
   };
 
   FONTCONFIG_FILE = fontsConf;
@@ -60,14 +65,14 @@ stdenv.mkDerivation rec {
     (stdenv.lib.optionalString stdenv.isDarwin "-framework CoreFoundation")
   ];
 
-  nativeBuildInputs = [ wrapGAppsHook ];
+  nativeBuildInputs = [ cacert wrapGAppsHook ];
 
   buildInputs = [ fontconfig libffi libtool sqlite gsettings-desktop-schemas gtk3 ]
     ++ stdenv.lib.optionals stdenv.isDarwin [ libiconv CoreFoundation ];
 
   preConfigure = ''
     unset AR
-    for f in src/configure src/racket/src/string.c; do
+    for f in src/lt/configure src/cs/c/configure src/racket/src/string.c; do
       substituteInPlace "$f" --replace /usr/bin/uname ${coreutils}/bin/uname
     done
     mkdir src/build
@@ -97,9 +102,10 @@ stdenv.mkDerivation rec {
       libraries support applications from web servers and databases to
       GUIs and charts.
     '';
-    homepage = http://racket-lang.org/;
-    license = licenses.lgpl3;
+    homepage = "https://racket-lang.org/";
+    license = with licenses; [ asl20 /* or */ mit ];
     maintainers = with maintainers; [ kkallio henrytill vrthra ];
-    platforms = [ "x86_64-darwin" "x86_64-linux" ];
+    platforms = [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ];
+    broken = stdenv.isDarwin; # No support yet for setting FFI lookup path
   };
 }

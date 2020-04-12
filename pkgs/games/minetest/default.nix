@@ -1,7 +1,7 @@
 { stdenv, fetchFromGitHub, cmake, irrlicht, libpng, bzip2, curl, libogg, jsoncpp
-, libjpeg, libXxf86vm, libGLU_combined, openal, libvorbis, xlibsWrapper, sqlite, luajit
-, freetype, gettext, doxygen, ncurses, graphviz, xorg
-, leveldb, postgresql, hiredis
+, libjpeg, libXxf86vm, libGLU, libGL, openal, libvorbis, sqlite, luajit
+, freetype, gettext, doxygen, ncurses, graphviz, xorg, gmp, libspatialindex
+, leveldb, postgresql, hiredis, libiconv, OpenGL, OpenAL ? openal, Carbon, Cocoa
 }:
 
 with stdenv.lib;
@@ -24,7 +24,8 @@ let
       };
     };
   in stdenv.mkDerivation {
-    name = "minetest-${version}";
+    pname = "minetest";
+    inherit version;
 
     src = sources.src;
 
@@ -38,16 +39,19 @@ let
     ] ++ optionals buildClient [
       "-DOpenGL_GL_PREFERENCE=GLVND"
     ];
-
-    NIX_CFLAGS_COMPILE = [ "-DluaL_reg=luaL_Reg" ]; # needed since luajit-2.1.0-beta3
+    
+    NIX_CFLAGS_COMPILE = "-DluaL_reg=luaL_Reg"; # needed since luajit-2.1.0-beta3
 
     nativeBuildInputs = [ cmake doxygen graphviz ];
 
     buildInputs = [
       irrlicht luajit jsoncpp gettext freetype sqlite curl bzip2 ncurses
+      gmp libspatialindex
+    ] ++ optionals stdenv.isDarwin [ 
+      libiconv OpenGL OpenAL Carbon Cocoa
     ] ++ optionals buildClient [
-      libpng libjpeg libGLU_combined openal libogg libvorbis xorg.libX11 libXxf86vm
-    ] ++ optional buildServer [
+      libpng libjpeg libGLU libGL openal libogg libvorbis xorg.libX11 libXxf86vm
+    ] ++ optionals buildServer [
       leveldb postgresql hiredis
     ];
 
@@ -57,11 +61,11 @@ let
     '';
 
     meta = with stdenv.lib; {
-      homepage = http://minetest.net/;
+      homepage = "http://minetest.net/";
       description = "Infinite-world block sandbox game";
       license = licenses.lgpl21Plus;
-      platforms = platforms.linux;
-      maintainers = with maintainers; [ jgeerds c0dehero fpletz ];
+      platforms = platforms.linux ++ platforms.darwin;
+      maintainers = with maintainers; [ pyrolagus fpletz ];
     };
   };
 
@@ -72,11 +76,9 @@ let
   };
 
   v5 = {
-    version = "git-5.0.0-dev-2019-01-08";
-    rev = "95d4ff6d1b62945decc85003a99588bb0539c45b";
-    sha256 = "1qn42d2lfgwadb26mix6c7j457zsl8cqqjfwhaa8y34hii1q44bw";
-    dataRev = "a2c9523bce5bcefdc930ff6f14d6d94f57473be9";
-    dataSha256 = "1p26zvnmq99cqlrby4294mp2fmp8iqdcjld0ph39x41ifc50lfdf";
+    version = "5.1.1";
+    sha256 = "0cjj63333b7j4ydfq0h9yc6d2jvmyjd7n7zbd08yrf0rcibrj2k0";
+    dataSha256 = "1r9fxz2j24q74a9injvbxbf2xk67fzabv616i676zw2cvgv9hn39";
   };
 
 in {

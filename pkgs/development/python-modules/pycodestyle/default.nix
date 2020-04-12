@@ -1,26 +1,31 @@
-{ lib, buildPythonPackage, fetchPypi, fetchpatch }:
+{ buildPythonPackage
+, fetchPypi
+, lib
+}:
 
 buildPythonPackage rec {
   pname = "pycodestyle";
-  version = "2.4.0";
+  version = "2.5.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "cbfca99bd594a10f674d0cd97a3d802a1fdef635d4361e1a2658de47ed261e3a";
+    sha256 = "0v4prb05n21bm8650v0a01k1nyqjdmkrsm3zycfxh2j5k9n962p4";
   };
 
-  patches = [
-    # https://github.com/PyCQA/pycodestyle/pull/801
-    (fetchpatch {
-      url = https://github.com/PyCQA/pycodestyle/commit/397463014fda3cdefe8d6c9d117ae16d878dc494.patch;
-      sha256 = "01zask2y2gim5il9lcmlhr2qaadv9v7kaw1y619l8xbjhpbq2zh8";
-    })
-  ];
+  # https://github.com/PyCQA/pycodestyle/blob/2.5.0/tox.ini#L14
+  checkPhase = ''
+    python pycodestyle.py --max-doc-length=72 --testsuite testsuite
+    python pycodestyle.py --statistics pycodestyle.py
+    python pycodestyle.py --max-doc-length=72 --doctest
+    python setup.py test
+  '';
 
   meta = with lib; {
     description = "Python style guide checker (formerly called pep8)";
-    homepage = https://pycodestyle.readthedocs.io;
+    homepage = "https://pycodestyle.readthedocs.io";
     license = licenses.mit;
-    maintainers = with maintainers; [ garbas ];
+    maintainers = with maintainers; [
+      kamadorueda
+    ];
   };
 }

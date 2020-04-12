@@ -1,11 +1,11 @@
-{ stdenv, buildPythonPackage, fetchFromGitHub, pillow, argparse, pyres, nose
+{ stdenv, buildPythonPackage, fetchFromGitHub, pillow, pyres, nose
 , preggy, numpy, yanc, nose-focus, mock, opencv }:
 
 buildPythonPackage rec {
   pname = "remotecv";
   version = "2.2.2";
 
-  propagatedBuildInputs = [ pillow argparse pyres ];
+  propagatedBuildInputs = [ pillow pyres ];
 
   checkInputs = [ nose preggy numpy yanc nose-focus mock opencv ];
 
@@ -31,8 +31,9 @@ buildPythonPackage rec {
 
   meta = with stdenv.lib; {
     description = "OpenCV worker for facial and feature recognition";
-    homepage = https://github.com/thumbor/remotecv/wiki;
+    homepage = "https://github.com/thumbor/remotecv/wiki";
     license = licenses.mit;
     maintainers = with maintainers; [ jluttine ];
+    broken = true; # no longer compatible with latest pillow
   };
 }

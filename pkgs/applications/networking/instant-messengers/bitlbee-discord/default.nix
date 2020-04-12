@@ -2,7 +2,7 @@
 
 with stdenv.lib;
 stdenv.mkDerivation rec {
-  name = "bitlbee-discord-${version}";
+  pname = "bitlbee-discord";
   version = "0.4.2";
 
   src = fetchFromGitHub {
@@ -17,15 +17,16 @@ stdenv.mkDerivation rec {
 
   preConfigure = ''
     export BITLBEE_PLUGINDIR=$out/lib/bitlbee
+    export BITLBEE_DATADIR=$out/share/bitlbee
     ./autogen.sh
   '';
 
   meta = {
     description = "Bitlbee plugin for Discord";
 
-    homepage = https://github.com/sm00th/bitlbee-discord;
+    homepage = "https://github.com/sm00th/bitlbee-discord";
     license = licenses.gpl2Plus;
-    maintainers = [ maintainers.lassulus ];
+    maintainers = with maintainers; [ lassulus jb55 ];
     platforms = stdenv.lib.platforms.linux;
   };
 }

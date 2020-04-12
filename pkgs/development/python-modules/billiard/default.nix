@@ -1,19 +1,22 @@
-{ stdenv, buildPythonPackage, fetchPypi, isPyPy, pytest, case }:
+{ stdenv, buildPythonPackage, fetchPypi, isPyPy, pytest, case, psutil }:
 
 buildPythonPackage rec {
   pname = "billiard";
-  version = "3.5.0.5";
+  version = "3.6.3.0";
   disabled = isPyPy;
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "03msmapj3s5zgqk87d646mafz7a01h5bm2wijalgpi0s80ks5na2";
+    sha256 = "0spssl3byzqsplra166d59jx8iqfxyzvcbx7vybkmwr5ck72a5yr";
   };
 
-  buildInputs = [ pytest case ];
+  checkInputs = [ pytest case psutil ];
+  checkPhase = ''
+    pytest
+  '';
 
   meta = with stdenv.lib; {
-    homepage = https://github.com/celery/billiard;
+    homepage = "https://github.com/celery/billiard";
     description = "Python multiprocessing fork with improvements and bugfixes";
     license = licenses.bsd3;
   };

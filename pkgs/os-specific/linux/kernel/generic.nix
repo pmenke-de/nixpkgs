@@ -1,5 +1,4 @@
 { buildPackages
-, ncurses
 , callPackage
 , perl
 , bison ? null
@@ -33,6 +32,10 @@
   # NixOS to implement kernel-specific behaviour.
   features ? {}
 
+, # Custom seed used for CONFIG_GCC_PLUGIN_RANDSTRUCT if enabled. This is
+  # automatically extended with extra per-version and per-config values.
+  randstructSeed ? ""
+
 , # A list of patches to apply to the kernel.  Each element of this list
   # should be an attribute set {name, patch} where `name' is a
   # symbolic name and `patch' is the actual patch.  The patch may
@@ -47,7 +50,6 @@
 , preferBuiltin ? stdenv.hostPlatform.platform.kernelPreferBuiltin or false
 , kernelArch ? stdenv.hostPlatform.platform.kernelArch
 
-, mkValueOverride ? null
 , ...
 }:
 
@@ -65,26 +67,34 @@ let
     netfilterRPFilter = true;
     grsecurity = false;
     xen_dom0 = false;
+    ia32Emulation = true;
   } // features) kernelPatches;
 
-  intermediateNixConfig = import ./common-config.nix {
-    inherit stdenv version structuredExtraConfig mkValueOverride;
-
-    # append extraConfig for backwards compatibility but also means the user can't override the kernelExtraConfig part
-    extraConfig = extraConfig + lib.optionalString (stdenv.hostPlatform.platform ? kernelExtraConfig) stdenv.hostPlatform.platform.kernelExtraConfig;
+  commonStructuredConfig = import ./common-config.nix {
+    inherit stdenv version ;
 
     features = kernelFeatures; # Ensure we know of all extra patches, etc.
   };
 
-  kernelConfigFun = baseConfig:
+  intermediateNixConfig = configfile.moduleStructuredConfig.intermediateNixConfig
+    # extra config in legacy string format
+    + extraConfig
+    + lib.optionalString (stdenv.hostPlatform.platform ? kernelExtraConfig) stdenv.hostPlatform.platform.kernelExtraConfig;
+
+  structuredConfigFromPatches =
+        map ({extraStructuredConfig ? {}, ...}: {settings=extraStructuredConfig;}) kernelPatches;
+
+  # appends kernel patches extraConfig
+  kernelConfigFun = baseConfigStr:
     let
       configFromPatches =
         map ({extraConfig ? "", ...}: extraConfig) kernelPatches;
-    in lib.concatStringsSep "\n" ([baseConfig] ++ configFromPatches);
+    in lib.concatStringsSep "\n" ([baseConfigStr] ++ configFromPatches);
 
   configfile = stdenv.mkDerivation {
     inherit ignoreConfigErrors autoModules preferBuiltin kernelArch;
-    name = "linux-config-${version}";
+    pname = "linux-config";
+    inherit version;
 
     generateConfig = ./generate-config.pl;
 
@@ -130,16 +140,40 @@ let
     installPhase = "mv $buildRoot/.config $out";
 
     enableParallelBuilding = true;
-  };
+
+    passthru = rec {
+
+      module = import ../../../../nixos/modules/system/boot/kernel_config.nix;
+      # used also in apache
+      # { modules = [ { options = res.options; config = svc.config or svc; } ];
+      #   check = false;
+      # The result is a set of two attributes
+      moduleStructuredConfig = (lib.evalModules {
+        modules = [
+          module
+          { settings = commonStructuredConfig; _file = "pkgs/os-specific/linux/kernel/common-config.nix"; }
+          { settings = structuredExtraConfig; _file = "structuredExtraConfig"; }
+        ]
+        ++  structuredConfigFromPatches
+        ;
+      }).config;
+
+      #
+      structuredConfig = moduleStructuredConfig.settings;
+    };
+
+
+  }; # end of configfile derivation
 
   kernel = (callPackage ./manual-config.nix {}) {
-    inherit version modDirVersion src kernelPatches stdenv extraMeta configfile;
+    inherit version modDirVersion src kernelPatches randstructSeed stdenv extraMeta configfile;
 
     config = { CONFIG_MODULES = "y"; CONFIG_FW_LOADER = "m"; };
   };
 
   passthru = {
     features = kernelFeatures;
+    inherit commonStructuredConfig;
     passthru = kernel.passthru // (removeAttrs passthru [ "passthru" ]);
   };
 

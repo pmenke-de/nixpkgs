@@ -21,7 +21,7 @@ let
 
   knownHostsText = (flip (concatMapStringsSep "\n") knownHosts
     (h: assert h.hostNames != [];
-      concatStringsSep "," h.hostNames + " "
+      optionalString h.certAuthority "@cert-authority " + concatStringsSep "," h.hostNames + " "
       + (if h.publicKey != null then h.publicKey else readFile h.publicKeyFile)
     )) + "\n";
 
@@ -61,12 +61,9 @@ in
         '';
       };
 
-      # Allow DSA keys for now. (These were deprecated in OpenSSH 7.0.)
       pubkeyAcceptedKeyTypes = mkOption {
         type = types.listOf types.str;
-        default = [
-          "+ssh-dss"
-        ];
+        default = [];
         example = [ "ssh-ed25519" "ssh-rsa" ];
         description = ''
           Specifies the key types that will be used for public key authentication.
@@ -75,9 +72,7 @@ in
 
       hostKeyAlgorithms = mkOption {
         type = types.listOf types.str;
-        default = [
-          "+ssh-dss"
-        ];
+        default = [];
         example = [ "ssh-ed25519" "ssh-rsa" ];
         description = ''
           Specifies the host key algorithms that the client wants to use in order of preference.
@@ -88,7 +83,8 @@ in
         type = types.lines;
         default = "";
         description = ''
-          Extra configuration text appended to <filename>ssh_config</filename>.
+          Extra configuration text prepended to <filename>ssh_config</filename>. Other generated
+          options will be added after a <code>Host *</code> pattern.
           See <citerefentry><refentrytitle>ssh_config</refentrytitle><manvolnum>5</manvolnum></citerefentry>
           for help.
         '';
@@ -114,6 +110,16 @@ in
         '';
       };
 
+      agentPKCS11Whitelist = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        example = "\${pkgs.opensc}/lib/opensc-pkcs11.so";
+        description = ''
+          A pattern-list of acceptable paths for PKCS#11 shared libraries
+          that may be used with the -s option to ssh-add.
+        '';
+      };
+
       package = mkOption {
         type = types.package;
         default = pkgs.openssh;
@@ -127,6 +133,14 @@ in
         default = {};
         type = types.loaOf (types.submodule ({ name, ... }: {
           options = {
+            certAuthority = mkOption {
+              type = types.bool;
+              default = false;
+              description = ''
+                This public key is an SSH certificate authority, rather than an
+                individual host's key.
+              '';
+            };
             hostNames = mkOption {
               type = types.listOf types.str;
               default = [];
@@ -203,6 +217,11 @@ in
     # generation in the sshd service.
     environment.etc."ssh/ssh_config".text =
       ''
+        # Custom options from `extraConfig`, to override generated options
+        ${cfg.extraConfig}
+
+        # Generated options from other settings
+        Host *
         AddressFamily ${if config.networking.enableIPv6 then "any" else "inet"}
 
         ${optionalString cfg.setXAuthLocation ''
@@ -213,8 +232,6 @@ in
 
         ${optionalString (cfg.pubkeyAcceptedKeyTypes != []) "PubkeyAcceptedKeyTypes ${concatStringsSep "," cfg.pubkeyAcceptedKeyTypes}"}
         ${optionalString (cfg.hostKeyAlgorithms != []) "HostKeyAlgorithms ${concatStringsSep "," cfg.hostKeyAlgorithms}"}
-
-        ${cfg.extraConfig}
       '';
 
     environment.etc."ssh/ssh_known_hosts".text = knownHostsText;
@@ -223,11 +240,13 @@ in
     systemd.user.services.ssh-agent = mkIf cfg.startAgent
       { description = "SSH Agent";
         wantedBy = [ "default.target" ];
+        unitConfig.ConditionUser = "!@system";
         serviceConfig =
           { ExecStartPre = "${pkgs.coreutils}/bin/rm -f %t/ssh-agent";
             ExecStart =
                 "${cfg.package}/bin/ssh-agent " +
                 optionalString (cfg.agentTimeout != null) ("-t ${cfg.agentTimeout} ") +
+                optionalString (cfg.agentPKCS11Whitelist != null) ("-P ${cfg.agentPKCS11Whitelist} ") +
                 "-a %t/ssh-agent";
             StandardOutput = "null";
             Type = "forking";

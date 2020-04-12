@@ -4,7 +4,8 @@ let
   version = "0.6.3";
 in
 stdenv.mkDerivation {
-  name = "ndn-cxx-${version}";
+  pname = "ndn-cxx";
+  inherit version;
   src = fetchFromGitHub {
     owner = "named-data";
     repo = "ndn-cxx";
@@ -13,13 +14,13 @@ stdenv.mkDerivation {
   };
   nativeBuildInputs = [ pkgconfig wafHook ];
   buildInputs = [ openssl doxygen boost sqlite python pythonPackages.sphinx];
-  configureFlags = [
+  wafConfigureFlags = [
     "--with-openssl=${openssl.dev}"
     "--boost-includes=${boost.dev}/include"
     "--boost-libs=${boost.out}/lib"
   ];
   meta = with stdenv.lib; {
-    homepage = http://named-data.net/;
+    homepage = "http://named-data.net/";
     description = "A Named Data Neworking (NDN) or Content Centric Networking (CCN) abstraction";
     longDescription = ''
       ndn-cxx is a C++ library, implementing Named Data Networking (NDN)

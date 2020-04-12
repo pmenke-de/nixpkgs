@@ -1,39 +1,45 @@
-{ stdenv, rustPlatform, fetchurl, stfl, sqlite, curl, gettext, pkgconfig, libxml2, json_c, ncurses
-, asciidoc, docbook_xml_dtd_45, libxslt, docbook_xsl, libiconv, Security, makeWrapper }:
+{ stdenv, rustPlatform, fetchFromGitHub, stfl, sqlite, curl, gettext, pkgconfig, libxml2, json_c, ncurses
+, asciidoctor, libiconv, Security, makeWrapper }:
 
 rustPlatform.buildRustPackage rec {
-  name = "newsboat-${version}";
-  version = "2.14";
+  pname = "newsboat";
+  version = "2.19";
 
-  src = fetchurl {
-    url = "https://newsboat.org/releases/${version}/${name}.tar.xz";
-    sha256 = "13bdwnwxa66c69lqhb02basff0aa6q1jhl7fgahcxmdy7snbmg37";
+  src = fetchFromGitHub {
+    owner = "newsboat";
+    repo = "newsboat";
+    rev = "r${version}";
+    sha256 = "0yyrq8a90l6pkrczm9qvdg75jhsdq0niwp79vrdpm8rsxqpdmfq7";
   };
 
-  cargoSha256 = "11s50qy1b833r2b5kr1wx9imi9h7s00c0hs36ricgbd0xw7n76hd";
+  cargoSha256 = "1q3jf3d80c0ik38qk8jgbhfz5jxv0cy3lzmkyh2l002azp9hvv59";
 
-  prePatch = ''
+  postPatch = ''
     substituteInPlace Makefile --replace "|| true" ""
     # Allow other ncurses versions on Darwin
     substituteInPlace config.sh \
       --replace "ncurses5.4" "ncurses"
   '';
 
-  nativeBuildInputs = [ pkgconfig asciidoc docbook_xml_dtd_45 libxslt docbook_xsl ]
-    ++ stdenv.lib.optional stdenv.isDarwin [ makeWrapper libiconv ];
+  nativeBuildInputs = [
+    pkgconfig
+    asciidoctor
+    gettext
+  ] ++ stdenv.lib.optionals stdenv.isDarwin [ makeWrapper libiconv ];
 
-  buildInputs = [ stfl sqlite curl gettext libxml2 json_c ncurses ]
+  buildInputs = [ stfl sqlite curl libxml2 json_c ncurses ]
     ++ stdenv.lib.optional stdenv.isDarwin Security;
 
   postBuild = ''
     make
   '';
 
-  NIX_CFLAGS_COMPILE = "-Wno-error=sign-compare";
+  # TODO: Check if that's still needed
+  NIX_CFLAGS_COMPILE = stdenv.lib.optionalString stdenv.isDarwin " -Wno-error=format-security";
 
   doCheck = true;
 
-  checkPhase = ''
+  preCheck = ''
     make test
   '';
 
@@ -47,8 +53,8 @@ rustPlatform.buildRustPackage rec {
   '';
 
   meta = with stdenv.lib; {
-    homepage    = https://newsboat.org/;
-    description = "A fork of Newsbeuter, an RSS/Atom feed reader for the text console.";
+    homepage    = "https://newsboat.org/";
+    description = "A fork of Newsbeuter, an RSS/Atom feed reader for the text console";
     maintainers = with maintainers; [ dotlambda nicknovitski ];
     license     = licenses.mit;
     platforms   = platforms.unix;

@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, fetchpatch, vala_0_40, python3, python2, pkgconfig, libxml2, meson, ninja, gtk3, granite, gnome3
+{ stdenv, fetchFromGitHub, pantheon, vala, python3, python2, pkgconfig, libxml2, meson, ninja, gtk3, gnome3, glib, webkitgtk, libgee
 , gobject-introspection, sqlite, poppler, poppler_utils, html2text, curl, gnugrep, coreutils, bash, unzip, unar, wrapGAppsHook }:
 
 stdenv.mkDerivation rec {
@@ -20,17 +20,17 @@ stdenv.mkDerivation rec {
     ninja
     pkgconfig
     python3
-    vala_0_40 # should be `elementary.vala` when elementary attribute set is merged
+    vala
     wrapGAppsHook
   ];
 
-  buildInputs = with gnome3; [
+  buildInputs = [
+    pantheon.elementary-icon-theme
+    pantheon.granite
     glib
-    gnome3.defaultIconTheme # should be `elementary.defaultIconTheme`when elementary attribute set is merged
-    granite
+    libgee
     gtk3
     html2text
-    libgee
     poppler
     python2
     sqlite
@@ -60,7 +60,7 @@ stdenv.mkDerivation rec {
      longDescription = ''
        Read the books you love without having to worry about different format complexities like epub, pdf, mobi, cbr, etc.
      '';
-     homepage = https://babluboy.github.io/bookworm/;
+     homepage = "https://babluboy.github.io/bookworm/";
      license = licenses.gpl3Plus;
      platforms = platforms.linux;
    };

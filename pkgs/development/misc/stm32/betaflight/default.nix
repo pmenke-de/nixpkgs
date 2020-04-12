@@ -15,7 +15,8 @@ let
 
 in stdenv.mkDerivation rec {
 
-  name = "betaflight-${version}";
+  pname = "betaflight";
+  inherit version;
 
   src = fetchFromGitHub {
     owner = "betaflight";
@@ -33,7 +34,7 @@ in stdenv.mkDerivation rec {
     sed -ri "s/REVISION.*=.*git log.*/REVISION = ${builtins.substring 0 10 src.rev}/" Makefile # Simulate abbrev'd rev.
     sed -ri "s/binary hex/hex/" Makefile # No need for anything besides .hex
 
-    substitutateInPlace Makefile \
+    substituteInPlace Makefile \
       --replace "--specs=nano.specs" ""
   '';
 
@@ -58,9 +59,10 @@ in stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Flight controller software (firmware) used to fly multi-rotor craft and fixed wing craft";
-    homepage = https://github.com/betaflight/betaflight;
+    homepage = "https://github.com/betaflight/betaflight";
     license = licenses.gpl3;
     maintainers = with maintainers; [ elitak ];
+    broken = true;
   };
 
 }

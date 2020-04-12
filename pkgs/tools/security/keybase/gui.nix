@@ -1,18 +1,19 @@
-{ stdenv, fetchurl, alsaLib, atk, cairo, cups, udev, hicolor-icon-theme
-, dbus, expat, fontconfig, freetype, gdk_pixbuf, glib, gnome2, gtk3, gnome3
-, libnotify, nspr, nss, pango, systemd, xorg, autoPatchelfHook, wrapGAppsHook }:
+{ stdenv, fetchurl, alsaLib, atk, cairo, cups, udev
+, dbus, expat, fontconfig, freetype, gdk-pixbuf, glib, gtk3, libappindicator-gtk3
+, libnotify, nspr, nss, pango, systemd, xorg, autoPatchelfHook, wrapGAppsHook
+, runtimeShell, gsettings-desktop-schemas }:
 
 let
-  versionSuffix = "20190115203650.eec94506e4";
+  versionSuffix = "20200320154633.3e235215b3";
 in
 
 stdenv.mkDerivation rec {
-  name = "keybase-gui-${version}";
-  version = "2.13.1"; # Find latest version from https://prerelease.keybase.io/deb/dists/stable/main/binary-amd64/Packages
+  pname = "keybase-gui";
+  version = "5.3.1"; # Find latest version from https://prerelease.keybase.io/deb/dists/stable/main/binary-amd64/Packages
 
   src = fetchurl {
     url = "https://s3.amazonaws.com/prerelease.keybase.io/linux_binaries/deb/keybase_${version + "-" + versionSuffix}_amd64.deb";
-    sha256 = "01663jknr8s4sp51mclw9llhx07ww6yh22apawxikvpwmw9yg2qr";
+    sha256 = "00k1xg27arbqpa836c55fhkxjvjbhjgkf6jqzprjzz76zksfdcx4";
   };
 
   nativeBuildInputs = [
@@ -29,11 +30,11 @@ stdenv.mkDerivation rec {
     expat
     fontconfig
     freetype
-    gdk_pixbuf
+    gdk-pixbuf
     glib
-    gnome2.GConf
-    gnome3.gsettings-desktop-schemas
+    gsettings-desktop-schemas
     gtk3
+    libappindicator-gtk3
     libnotify
     nspr
     nss
@@ -55,11 +56,12 @@ stdenv.mkDerivation rec {
 
   runtimeDependencies = [
     udev.lib
+    libappindicator-gtk3
   ];
 
   dontBuild = true;
   dontConfigure = true;
-  dontPatchElf = true;
+  dontPatchELF = true;
 
   unpackPhase = ''
     ar xf $src
@@ -72,7 +74,7 @@ stdenv.mkDerivation rec {
     mv opt/keybase $out/share/
 
     cat > $out/bin/keybase-gui <<EOF
-    #!${stdenv.shell}
+    #!${runtimeShell}
 
     checkFailed() {
       if [ "\$NIX_SKIP_KEYBASE_CHECKS" = "1" ]; then
@@ -103,10 +105,10 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with stdenv.lib; {
-    homepage = https://www.keybase.io/;
+    homepage = "https://www.keybase.io/";
     description = "The Keybase official GUI";
     platforms = platforms.linux;
-    maintainers = with maintainers; [ rvolosatovs puffnfresh np ];
+    maintainers = with maintainers; [ rvolosatovs puffnfresh np filalex77 ];
     license = licenses.bsd3;
   };
 }

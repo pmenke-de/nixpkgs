@@ -1,8 +1,8 @@
 { stdenv, buildGoPackage, fetchFromGitHub }:
 
 buildGoPackage rec {
-  name = "nomad-${version}";
-  version = "0.8.6";
+  pname = "nomad";
+  version = "0.11.0";
   rev = "v${version}";
 
   goPackagePath = "github.com/hashicorp/nomad";
@@ -10,16 +10,32 @@ buildGoPackage rec {
 
   src = fetchFromGitHub {
     owner = "hashicorp";
-    repo = "nomad";
+    repo = pname;
     inherit rev;
-    sha256 = "1786hbgby9q3p4x28xdc06v12n8qvxqwis70mr80axb6r4kd7yqw";
+    sha256 = "0jg7h52wlgd2aslx13fs97j3b8g5xfgil3p2jsc4j95l7lmqn7bv";
   };
 
+  # ui:
+  #  Nomad release commits include the compiled version of the UI, but the file
+  #  is only included if we build with the ui tag.
+  # nonvidia:
+  #  We disable Nvidia GPU scheduling on Linux, as it doesn't work there:
+  #  Ref: https://github.com/hashicorp/nomad/issues/5535
+  preBuild = let
+    tags = ["ui"]
+      ++ stdenv.lib.optional stdenv.isLinux "nonvidia";
+    tagsString = stdenv.lib.concatStringsSep " " tags;
+  in ''
+    export buildFlagsArray=(
+      -tags="${tagsString}"
+    )
+ '';
+
   meta = with stdenv.lib; {
-    homepage = https://www.nomadproject.io/;
+    homepage = "https://www.nomadproject.io/";
     description = "A Distributed, Highly Available, Datacenter-Aware Scheduler";
-    platforms = platforms.linux;
+    platforms = platforms.unix;
     license = licenses.mpl20;
-    maintainers = with maintainers; [ rushmorem pradeepchhetri ];
+    maintainers = with maintainers; [ rushmorem pradeepchhetri endocrimes ];
   };
 }

@@ -2,11 +2,11 @@
 
 buildPythonPackage rec {
   pname = "snakeviz";
-  version = "1.0.0";
+  version = "2.0.1";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "5fe23667708a4ed04047abfbf209675a8488ea6ea8c038d7de06d8a083fb3531";
+    sha256 = "11a8cd4g98vq2x61i99ncl5w83clnndwg909ya4y1cdf0k1ckb40";
   };
 
   # Upstream doesn't run tests from setup.py
@@ -15,7 +15,7 @@ buildPythonPackage rec {
 
   meta = with stdenv.lib; {
     description = "Browser based viewer for profiling data";
-    homepage = https://jiffyclub.github.io/snakeviz;
+    homepage = "https://jiffyclub.github.io/snakeviz";
     license = licenses.bsd3;
     maintainers = with maintainers; [ nixy ];
   };

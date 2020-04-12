@@ -1,5 +1,5 @@
-{ lib, stdenv, python3
-, enableSystemd ? true
+{ lib, stdenv, python3, openssl
+, enableSystemd ? stdenv.isLinux, nixosTests
 }:
 
 with python3.pkgs;
@@ -7,11 +7,11 @@ with python3.pkgs;
 let
   matrix-synapse-ldap3 = buildPythonPackage rec {
     pname = "matrix-synapse-ldap3";
-    version = "0.1.3";
+    version = "0.1.4";
 
     src = fetchPypi {
       inherit pname version;
-      sha256 = "0a0d1y9yi0abdkv6chbmxr3vk36gynnqzrjhbg26q4zg06lh9kgn";
+      sha256 = "01bms89sl16nyh9f141idsz4mnhxvjrc3gj721wxh1fhikps0djx";
     };
 
     propagatedBuildInputs = [ service-identity ldap3 twisted ];
@@ -23,29 +23,30 @@ let
 
 in buildPythonApplication rec {
   pname = "matrix-synapse";
-  version = "0.34.1.1";
+  version = "1.12.1";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "13jmbcabll3gk0b6yqwfwpc7aymqhpv6iririzskhm4pgbjcp3yk";
+    sha256 = "0l3a5dvnahrzwqh8p0cnfr019bxxgd769jk2wprfvfd65h7p0g1r";
   };
 
   patches = [
-    ./matrix-synapse.patch
+    # adds an entry point for the service
+    ./homeserver-script.patch
   ];
 
   propagatedBuildInputs = [
+    setuptools
     bcrypt
     bleach
     canonicaljson
     daemonize
-    dateutil
     frozendict
     jinja2
     jsonschema
     lxml
     matrix-synapse-ldap3
-    msgpack-python
+    msgpack
     netaddr
     phonenumbers
     pillow
@@ -59,8 +60,7 @@ in buildPythonApplication rec {
     psutil
     psycopg2
     pyasn1
-    pydenticon
-    pymacaroons-pynacl
+    pymacaroons
     pynacl
     pyopenssl
     pysaml2
@@ -71,18 +71,23 @@ in buildPythonApplication rec {
     treq
     twisted
     unpaddedbase64
+    typing-extensions
   ] ++ lib.optional enableSystemd systemd;
 
-  checkInputs = [ mock ];
+  checkInputs = [ mock parameterized openssl ];
+
+  doCheck = !stdenv.isDarwin;
+
+  passthru.tests = { inherit (nixosTests) matrix-synapse; };
 
   checkPhase = ''
-    PYTHONPATH=".:$PYTHONPATH" trial tests
+    PYTHONPATH=".:$PYTHONPATH" ${python3.interpreter} -m twisted.trial tests
   '';
 
   meta = with stdenv.lib; {
-    homepage = https://matrix.org;
+    homepage = "https://matrix.org";
     description = "Matrix reference homeserver";
     license = licenses.asl20;
-    maintainers = with maintainers; [ ralith roblabla ekleog ];
+    maintainers = with maintainers; [ ralith roblabla ekleog pacien ma27 ];
   };
 }

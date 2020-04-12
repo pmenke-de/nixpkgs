@@ -1,32 +1,37 @@
 { stdenv, fetchFromGitHub, zlib }:
 
 stdenv.mkDerivation rec {
-  name = "star-${version}";
-  version = "2.6.1d";
+  pname = "star";
+  version = "2.7.3a";
 
   src = fetchFromGitHub {
     repo = "STAR";
     owner = "alexdobin";
     rev = version;
-    sha256 = "1h0j8qj95a0brv7p3gxmg3z7z6f4670jzjg56kzyc33k8dmzxvli";
+    sha256 = "1hgiqw5qhs0pc1xazzihcfd92na02xyq2kb469z04y1v51kpvvjq";
   };
 
   sourceRoot = "source/source";
-  
-  postPatch = "sed 's:/bin/rm:rm:g' -i Makefile";
-  
+
+  postPatch = ''
+    substituteInPlace Makefile --replace "/bin/rm" "rm"
+  '';
+
   buildInputs = [ zlib ];
-  
-  buildPhase = "make STAR STARlong";
+
+  buildFlags = [ "STAR" "STARlong" ];
+
+  enableParallelBuilding = true;
 
   installPhase = ''
-    mkdir -p $out/bin
-    cp STAR STARlong $out/bin
+    runHook preInstall
+    install -D STAR STARlong -t $out/bin
+    runHook postInstall
   '';
-  
+
   meta = with stdenv.lib; {
     description = "Spliced Transcripts Alignment to a Reference";
-    homepage = https://github.com/alexdobin/STAR;
+    homepage = "https://github.com/alexdobin/STAR";
     license = licenses.gpl3Plus;
     platforms = platforms.linux;
     maintainers = [ maintainers.arcadio ];

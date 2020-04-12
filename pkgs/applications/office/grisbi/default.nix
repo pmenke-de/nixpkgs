@@ -1,18 +1,18 @@
-{ fetchurl, stdenv, gtk, pkgconfig, libofx, intltool, wrapGAppsHook
-, hicolor-icon-theme, libsoup, gnome3 }:
+{ fetchurl, stdenv, gtk, pkgconfig, libgsf, libofx, intltool, wrapGAppsHook
+, libsoup, gnome3 }:
 
 stdenv.mkDerivation rec {
-  name = "grisbi-${version}";
-  version = "1.0.4";
+  pname = "grisbi";
+  version = "1.2.2";
 
   src = fetchurl {
-    url = "mirror://sourceforge/grisbi/${name}.tar.bz2";
-    sha256 = "1rh2iqvi7lpz5l57vn7qk9azil3y1g65mfbi9hhbx956knh9bpf6";
+    url = "mirror://sourceforge/grisbi/${pname}-${version}.tar.bz2";
+    sha1 = "crv3bga72v6fw07wad0nkrgdg4war66j";
   };
 
   nativeBuildInputs = [ pkgconfig wrapGAppsHook ];
-  buildInputs = [ gtk libofx intltool hicolor-icon-theme libsoup
-    gnome3.defaultIconTheme ];
+  buildInputs = [ gtk libgsf libofx intltool libsoup
+    gnome3.adwaita-icon-theme ];
 
   meta = with stdenv.lib; {
     description = "A personnal accounting application.";
