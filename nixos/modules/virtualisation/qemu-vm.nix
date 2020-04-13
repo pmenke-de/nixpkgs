@@ -101,8 +101,8 @@ let
 
         ${if cfg.useEFIBoot then ''
           # VM needs a writable flash BIOS.
-          cp ${bootDisk}/bios.bin $TMPDIR || exit 1
-          chmod 0644 $TMPDIR/bios.bin || exit 1
+          cp ${bootDisk}/OVMF_VARS.fd $TMPDIR || exit 1
+          chmod 0644 $TMPDIR/OVMF_VARS.fd || exit 1
         '' else ''
         ''}
       '' else ''
@@ -147,18 +147,21 @@ let
             ''
               mkdir $out
               diskImage=$out/disk.img
-              bootFlash=$out/bios.bin
+              efiVars=$out/OVMF_VARS.fd
               ${qemu}/bin/qemu-img create -f qcow2 $diskImage "40M"
               ${if cfg.useEFIBoot then ''
-                cp ${pkgs.OVMF-CSM.fd}/FV/OVMF.fd $bootFlash
-                chmod 0644 $bootFlash
+                cp ${cfg.defaultOVMFVars} $efiVars
+                chmod 0644 $efiVars
               '' else ''
               ''}
             '';
           buildInputs = [ pkgs.utillinux ];
-          QEMU_OPTS = if cfg.useEFIBoot
-                      then "-pflash $out/bios.bin -nographic -serial pty"
-                      else "-nographic -serial pty";
+          # TODO: Use a list of strings here?
+          # TODO: smm needs q35?
+          QEMU_OPTS = "-nographic -serial stdio -monitor none"
+                      + (lib.optionalString cfg.useEFIBoot
+                        " -drive if=pflash,format=raw,readonly=on,file=${pkgs.OVMF-secureBoot.fd}/FV/OVMF_CODE.fd"
+                      + " -drive if=pflash,format=raw,file=$efiVars");
         }
         ''
           # Create a /boot EFI partition with 40M and arbitrary but fixed GUIDs for reproducibility
@@ -189,13 +192,18 @@ let
           mkdir /boot/grub
           echo '(hd0) /dev/vda' > /boot/grub/device.map
 
+          # systemd-boot needs this
+          mkdir -p /dev/block
+          ln -s /dev/vda2 /dev/block/254:2
+
           # Install bootloader
           touch /etc/NIXOS
           mkdir -p /nix/var/nix/profiles
           ln -s ${config.system.build.toplevel} /nix/var/nix/profiles/system-1-link
           ln -s /nix/var/nix/profiles/system-1-link /nix/var/nix/profiles/system
           export NIXOS_INSTALL_BOOTLOADER=1
-          export SYSTEMD_RELAX_ESP_CHECKS=1
+
+          ${lib.optionalString config.boot.loader.efi.canTouchEfiVariables "mount -t efivarfs efivarfs /sys/firmware/efi/efivars"}
 
           ${config.system.build.toplevel}/bin/switch-to-configuration boot
 
@@ -437,6 +445,12 @@ in
           '';
       };
 
+    # TODO: Temporary hack
+    virtualisation.defaultOVMFVars =
+      mkOption {
+        default = "${pkgs.OVMF-CSM.fd}/FV/OVMF_VARS.fd";
+      };
+
   };
 
   config = {
@@ -515,7 +529,8 @@ in
         ''-append "$(cat ${config.system.build.toplevel}/kernel-params) init=${config.system.build.toplevel}/init regInfo=${regInfo}/registration ${consoles} $QEMU_KERNEL_PARAMS"''
       ])
       (mkIf cfg.useEFIBoot [
-        "-pflash $TMPDIR/bios.bin"
+        "-drive if=pflash,format=raw,readonly,file=${pkgs.OVMF-secureBoot.fd}/FV/OVMF_CODE.fd"
+        "-drive if=pflash,format=raw,file=$TMPDIR/OVMF_VARS.fd"
       ])
       (mkIf (!cfg.graphics) [
         "-nographic"
