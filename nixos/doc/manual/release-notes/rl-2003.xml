@@ -3,7 +3,7 @@
          xmlns:xi="http://www.w3.org/2001/XInclude"
          version="5.0"
          xml:id="sec-release-20.03">
- <title>Release 20.03 (“Markhor”, 2020.03/??)</title>
+ <title>Release 20.03 (“Markhor”, 2020.04/20)</title>
 
  <section xmlns="http://docbook.org/ns/docbook"
          xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -41,8 +41,6 @@
    <listitem>
     <para>
      Linux kernel is updated to branch 5.4 by default (from 4.19).
-     Users of Intel GPUs may prefer to explicitly set branch to 4.19 to avoid some regressions.
-     <programlisting>boot.kernelPackages = pkgs.linuxPackages_4_19;</programlisting>
     </para>
    </listitem>
    <listitem>
@@ -937,6 +935,15 @@ services.dnsmasq.servers = [ "127.0.0.1#43" ];
    </listitem>
    <listitem>
     <para>
+      Haskell <varname>env</varname> and <varname>shellFor</varname> dev shell environments now organize dependencies the same way as regular builds.
+      In particular, rather than receiving all the different lists of dependencies mashed together as one big list, and then partitioning into Haskell and non-Hakell dependencies, they work from the original many different dependency parameters and don't need to algorithmically partition anything.
+    </para>
+    <para>
+      This means that if you incorrectly categorize a dependency, e.g. non-Haskell library dependency as a <varname>buildDepends</varname> or run-time Haskell dependency as a <varname>setupDepends</varname>, whereas things would have worked before they may not work now.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
      The <package>gcc-snapshot</package>-package has been removed. It's marked as broken for &gt;2 years and used to point
      to a fairly old snapshot  from the <package>gcc7</package>-branch.
     </para>
@@ -1138,9 +1145,11 @@ systemd.services.nginx.serviceConfig.User = lib.mkForce "root";
      As well as this, the options <literal>security.acme.acceptTerms</literal> and either
      <literal>security.acme.email</literal> or <literal>security.acme.certs.&lt;name&gt;.email</literal>
      must be set in order to use the ACME module.
-     Certificates will be regenerated anew on the next renewal date. The credentials for simp-le are
-     preserved and thus it is possible to roll back to previous versions without breaking certificate
-     generation.
+     Certificates will be regenerated on activation, no account or certificate will be migrated from simp-le.
+     In particular private keys will not be preserved. However, the credentials for simp-le are preserved and
+     thus it is possible to roll back to previous versions without breaking certificate generation.
+     Note also that in contrary to simp-le a new private key is recreated at each renewal by default, which can
+     have consequences if you embed your public key in apps.
     </para>
    </listitem>
    <listitem>

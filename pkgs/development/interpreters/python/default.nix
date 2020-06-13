@@ -23,8 +23,6 @@ with pkgs;
       };
     in rec {
         isPy27 = pythonVersion == "2.7";
-        isPy33 = pythonVersion == "3.3"; # TODO: remove
-        isPy34 = pythonVersion == "3.4"; # TODO: remove
         isPy35 = pythonVersion == "3.5";
         isPy36 = pythonVersion == "3.6";
         isPy37 = pythonVersion == "3.7";
@@ -57,10 +55,10 @@ in {
     sourceVersion = {
       major = "2";
       minor = "7";
-      patch = "17";
+      patch = "18";
       suffix = "";
     };
-    sha256 = "0hds28cg226m8j8sr394nm9yc4gxhvlv109w0avsf2mxrlrz0hsd";
+    sha256 = "0hzgxl94hnflis0d6m4szjx0b52gah7wpmcg5g00q7am6xwhwb5n";
     inherit (darwin) configd;
     inherit passthruFun;
   };
@@ -109,10 +107,10 @@ in {
     sourceVersion = {
       major = "3";
       minor = "8";
-      patch = "2";
+      patch = "3";
       suffix = "";
     };
-    sha256 = "1ps5v323cp5czfshqjmbsqw7nvrdpcbk06f62jbzaqik4gfffii6";
+    sha256 = "0r2qg4pdvv52ld5dd95fl6lzzsxxxhbsxmymwcphh6624g3mxayz";
     inherit (darwin) configd;
     inherit passthruFun;
   };

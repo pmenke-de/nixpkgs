@@ -3,13 +3,13 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "starship";
-  version = "0.40.0";
+  version = "0.42.0";
 
   src = fetchFromGitHub {
     owner = "starship";
     repo = pname;
     rev = "v${version}";
-    sha256 = "11x5j91dank0zgxy1y5abhfymyzf3fpfvw6g1ll23vwxmspm8f4w";
+    sha256 = "17wc9f07308a97dsmrkq74w2r639sqms0hwh8gavwxycj7wq7xz2";
   };
 
   nativeBuildInputs = stdenv.lib.optionals stdenv.isLinux [ pkg-config ];
@@ -22,14 +22,14 @@ rustPlatform.buildRustPackage rec {
       --replace "/bin/echo" "echo"
   '';
 
-  cargoSha256 = "0z0k9nq6fjg30380yc1skdzw0mhfljhkpagm8mh5w9bz1bzyd45d";
+  cargoSha256 = "1nvs68qxygi2l43vxw890r40px35dvzbcg6qmrm09g60ykd8pjv2";
   checkPhase = "cargo test -- --skip directory::home_directory --skip directory::directory_in_root";
 
   meta = with stdenv.lib; {
     description = "A minimal, blazing fast, and extremely customizable prompt for any shell";
     homepage = "https://starship.rs";
     license = licenses.isc;
-    maintainers = with maintainers; [ bbigras davidtwco filalex77 ];
+    maintainers = with maintainers; [ bbigras davidtwco filalex77 Frostman ];
     platforms = platforms.all;
   };
 }

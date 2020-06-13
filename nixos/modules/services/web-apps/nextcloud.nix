@@ -11,8 +11,8 @@ let
       base = pkgs.php74;
     in
       base.buildEnv {
-        extensions = e: with e;
-          base.enabledExtensions ++ [
+        extensions = { enabled, all }: with all;
+          enabled ++ [
             apcu redis memcached imagick
           ];
         extraConfig = phpOptionsStr;
@@ -34,7 +34,7 @@ let
     cd ${cfg.package}
     sudo=exec
     if [[ "$USER" != nextcloud ]]; then
-      sudo='exec /run/wrappers/bin/sudo -u nextcloud --preserve-env=NEXTCLOUD_CONFIG_DIR'
+      sudo='exec /run/wrappers/bin/sudo -u nextcloud --preserve-env=NEXTCLOUD_CONFIG_DIR --preserve-env=OC_PASS'
     fi
     export NEXTCLOUD_CONFIG_DIR="${cfg.home}/config"
     $sudo \

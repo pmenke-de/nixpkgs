@@ -196,11 +196,11 @@
   ./security/pam_usb.nix
   ./security/pam_mount.nix
   ./security/polkit.nix
-  ./security/prey.nix
   ./security/rngd.nix
   ./security/rtkit.nix
   ./security/wrappers/default.nix
   ./security/sudo.nix
+  ./security/doas.nix
   ./security/systemd-confinement.nix
   ./security/tpm2.nix
   ./services/admin/oxidized.nix
@@ -238,6 +238,7 @@
   ./services/backup/zfs-replication.nix
   ./services/backup/znapzend.nix
   ./services/cluster/hadoop/default.nix
+  ./services/cluster/k3s/default.nix
   ./services/cluster/kubernetes/addons/dns.nix
   ./services/cluster/kubernetes/addons/dashboard.nix
   ./services/cluster/kubernetes/addon-manager.nix
@@ -333,6 +334,7 @@
   ./services/games/minecraft-server.nix
   ./services/games/minetest-server.nix
   ./services/games/openarena.nix
+  ./services/games/teeworlds.nix
   ./services/games/terraria.nix
   ./services/hardware/acpid.nix
   ./services/hardware/actkbd.nix
@@ -414,6 +416,7 @@
   ./services/misc/apache-kafka.nix
   ./services/misc/autofs.nix
   ./services/misc/autorandr.nix
+  ./services/misc/bazarr.nix
   ./services/misc/beanstalkd.nix
   ./services/misc/bees.nix
   ./services/misc/bepasty.nix
@@ -460,7 +463,9 @@
   ./services/misc/lidarr.nix
   ./services/misc/mame.nix
   ./services/misc/mathics.nix
+  ./services/misc/matrix-appservice-discord.nix
   ./services/misc/matrix-synapse.nix
+  ./services/misc/mautrix-telegram.nix
   ./services/misc/mbpfan.nix
   ./services/misc/mediatomb.nix
   ./services/misc/mesos-master.nix
@@ -545,6 +550,7 @@
   ./services/monitoring/teamviewer.nix
   ./services/monitoring/telegraf.nix
   ./services/monitoring/thanos.nix
+  ./services/monitoring/tuptime.nix
   ./services/monitoring/ups.nix
   ./services/monitoring/uptime.nix
   ./services/monitoring/vnstat.nix
@@ -596,13 +602,13 @@
   ./services/networking/dhcpcd.nix
   ./services/networking/dhcpd.nix
   ./services/networking/dnscache.nix
-  ./services/networking/dnschain.nix
   ./services/networking/dnscrypt-proxy2.nix
   ./services/networking/dnscrypt-wrapper.nix
   ./services/networking/dnsdist.nix
   ./services/networking/dnsmasq.nix
   ./services/networking/ejabberd.nix
   ./services/networking/epmd.nix
+  ./services/networking/ergo.nix
   ./services/networking/eternal-terminal.nix
   ./services/networking/fakeroute.nix
   ./services/networking/ferm.nix
@@ -790,6 +796,7 @@
   ./services/security/nginx-sso.nix
   ./services/security/oauth2_proxy.nix
   ./services/security/oauth2_proxy_nginx.nix
+  ./services/security/privacyidea.nix
   ./services/security/physlock.nix
   ./services/security/shibboleth-sp.nix
   ./services/security/sks.nix
@@ -799,7 +806,6 @@
   ./services/security/torsocks.nix
   ./services/security/usbguard.nix
   ./services/security/vault.nix
-  ./services/system/cgmanager.nix
   ./services/system/cloud-init.nix
   ./services/system/dbus.nix
   ./services/system/earlyoom.nix
@@ -813,6 +819,7 @@
   ./services/torrent/magnetico.nix
   ./services/torrent/opentracker.nix
   ./services/torrent/peerflix.nix
+  ./services/torrent/rtorrent.nix
   ./services/torrent/transmission.nix
   ./services/ttys/agetty.nix
   ./services/ttys/gpm.nix
@@ -825,6 +832,7 @@
   ./services/web-apps/cryptpad.nix
   ./services/web-apps/documize.nix
   ./services/web-apps/dokuwiki.nix
+  ./services/web-apps/engelsystem.nix
   ./services/web-apps/frab.nix
   ./services/web-apps/gerrit.nix
   ./services/web-apps/gotify-server.nix
@@ -844,6 +852,7 @@
   ./services/web-apps/matomo.nix
   ./services/web-apps/moinmoin.nix
   ./services/web-apps/restya-board.nix
+  ./services/web-apps/sogo.nix
   ./services/web-apps/tt-rss.nix
   ./services/web-apps/trac.nix
   ./services/web-apps/trilium.nix
@@ -982,9 +991,10 @@
   ./virtualisation/anbox.nix
   ./virtualisation/container-config.nix
   ./virtualisation/containers.nix
+  ./virtualisation/nixos-containers.nix
+  ./virtualisation/oci-containers.nix
   ./virtualisation/cri-o.nix
   ./virtualisation/docker.nix
-  ./virtualisation/docker-containers.nix
   ./virtualisation/ecs-agent.nix
   ./virtualisation/libvirtd.nix
   ./virtualisation/lxc.nix
@@ -995,9 +1005,9 @@
   ./virtualisation/kvmgt.nix
   ./virtualisation/openvswitch.nix
   ./virtualisation/parallels-guest.nix
+  ./virtualisation/podman.nix
   ./virtualisation/qemu-guest-agent.nix
   ./virtualisation/railcar.nix
-  ./virtualisation/rkt.nix
   ./virtualisation/virtualbox-guest.nix
   ./virtualisation/virtualbox-host.nix
   ./virtualisation/vmware-guest.nix

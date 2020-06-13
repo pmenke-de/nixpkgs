@@ -197,6 +197,51 @@ let
         dependencies = [ (mkCrate { crateName = "foo"; libName = "foolib"; src = mkLib "src/lib.rs"; }) ];
         crateRenames = { "foo" = "foo_renamed"; };
       };
+      crateBinRenameMultiVersion = let
+        crateWithVersion = version: mkCrate {
+          crateName = "my_lib";
+          inherit version;
+          src = mkFile "src/lib.rs" ''
+            pub const version: &str = "${version}";
+          '';
+        };
+        depCrate01 = crateWithVersion "0.1.2";
+        depCrate02 = crateWithVersion "0.2.1";
+      in {
+        crateName = "my_bin";
+        src = symlinkJoin {
+          name = "my_bin_src";
+          paths = [
+            (mkFile  "src/main.rs" ''
+              #[test]
+              fn my_lib_01() { assert_eq!(lib01::version, "0.1.2"); }
+
+              #[test]
+              fn my_lib_02() { assert_eq!(lib02::version, "0.2.1"); }
+
+              fn main() { }
+            '')
+          ];
+        };
+        dependencies = [ depCrate01 depCrate02 ];
+        crateRenames = {
+          "my_lib" = [
+            {
+              version = "0.1.2";
+              rename = "lib01";
+            }
+            {
+              version = "0.2.1";
+              rename = "lib02";
+            }
+          ];
+        };
+        buildTests = true;
+        expectedTestOutputs = [
+          "test my_lib_01 ... ok"
+          "test my_lib_02 ... ok"
+        ];
+      };
       rustLibTestsDefault = {
         src = mkTestFile "src/lib.rs" "baz";
         buildTests = true;
@@ -298,6 +343,40 @@ let
         dependencies = [ (depCrate "false") ];
         buildTests = true;
         expectedTestOutputs = [ "test baz_false ... ok" ];
+      };
+      # Regression test for https://github.com/NixOS/nixpkgs/pull/88054
+      # Build script output should be rewritten as valid env vars.
+      buildScriptIncludeDirDeps = let
+        depCrate = mkCrate {
+          crateName = "bar";
+          src = symlinkJoin {
+            name = "build-script-and-include-dir-bar";
+            paths = [
+              (mkFile  "src/lib.rs" ''
+                fn main() { }
+              '')
+              (mkFile  "build.rs" ''
+                use std::path::PathBuf;
+                fn main() { println!("cargo:include-dir={}/src", std::env::current_dir().unwrap_or(PathBuf::from(".")).to_str().unwrap()); }
+              '')
+            ];
+          };
+        };
+      in {
+        crateName = "foo";
+        src = symlinkJoin {
+          name = "build-script-and-include-dir-foo";
+          paths = [
+            (mkFile  "src/main.rs" ''
+              fn main() { }
+            '')
+            (mkFile  "build.rs" ''
+              fn main() { assert!(std::env::var_os("DEP_BAR_INCLUDE_DIR").is_some()); }
+            '')
+          ];
+        };
+        buildDependencies = [ depCrate ];
+        dependencies = [ depCrate ];
       };
       # Regression test for https://github.com/NixOS/nixpkgs/issues/74071
       # Whenevever a build.rs file is generating files those should not be overlayed onto the actual source dir
@@ -412,6 +491,18 @@ let
               "test ignore_main ... ok"
             ];
           };
+      procMacroInPrelude = {
+        procMacro = true;
+        edition = "2018";
+        src = symlinkJoin {
+          name = "proc-macro-in-prelude";
+          paths = [
+            (mkFile "src/lib.rs" ''
+              use proc_macro::TokenTree;
+            '')
+          ];
+        };
+      };
     };
     brotliCrates = (callPackage ./brotli-crates.nix {});
     tests = lib.mapAttrs (key: value: mkTest (value // lib.optionalAttrs (!value?crateName) { crateName = key; })) cases;

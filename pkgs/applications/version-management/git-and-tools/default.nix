@@ -82,6 +82,14 @@ let
     inherit (darwin.apple_sdk.frameworks) CoreFoundation Security;
   };
 
+  git-doc = lib.addMetaAttrs {
+    description = "Additional documentation for Git";
+    longDescription = ''
+      This package contains additional documentation (HTML and text files) that
+      is referenced in the man pages of Git.
+    '';
+  } gitFull.doc;
+
   git-extras = callPackage ./git-extras { };
 
   git-fame = callPackage ./git-fame {};
@@ -136,6 +144,10 @@ let
 
   git-subrepo = callPackage ./git-subrepo { };
 
+  git-subset = callPackage ./git-subset {
+    inherit (darwin.apple_sdk.frameworks) Security;
+  };
+
   git-subtrac = callPackage ./git-subtrac { };
 
   git-sync = callPackage ./git-sync { };
@@ -167,15 +179,21 @@ let
 
   gita = python3Packages.callPackage ./gita {};
 
+  gitbatch = callPackage ./gitbatch { };
+
   gitflow = callPackage ./gitflow { };
+
+  gitin = callPackage ./gitin { };
 
   gitstatus = callPackage ./gitstatus { };
 
+  gitui = callPackage ./gitui {
+    inherit (darwin.apple_sdk.frameworks) Security;
+  };
+
   grv = callPackage ./grv { };
 
-  hub = callPackage ./hub {
-    inherit (darwin) Security;
-  };
+  hub = callPackage ./hub { };
 
   lab = callPackage ./lab { };
 
