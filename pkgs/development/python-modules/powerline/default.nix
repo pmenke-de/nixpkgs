@@ -8,6 +8,7 @@
 , pygit2
 , pyuv
 , i3ipc
+, stdenv
 }:
 
 # TODO: bzr support is missing because nixpkgs switched to `breezy`
@@ -29,8 +30,7 @@ buildPythonPackage rec {
     hglib
     pygit2
     pyuv
-    i3ipc
-  ];
+  ] ++ lib.optionals (!stdenv.isDarwin) [ i3ipc ];
 
   # tests are travis-specific
   doCheck = false;
@@ -41,7 +41,10 @@ buildPythonPackage rec {
     install -m644 "font/PowerlineSymbols.otf" "$out/share/fonts/OTF/PowerlineSymbols.otf"
     install -m644 "font/10-powerline-symbols.conf" "$out/etc/fonts/conf.d/10-powerline-symbols.conf"
 
-    cp -ra powerline/bindings/{bash,fish,shell,tcsh,tmux,vim,zsh} $out/share/
+    install -dm755 "$out/share/fish/vendor_functions.d"
+    install -m644 "powerline/bindings/fish/powerline-setup.fish" "$out/share/fish/vendor_functions.d/powerline-setup.fish"
+
+    cp -ra powerline/bindings/{bash,shell,tcsh,tmux,vim,zsh} $out/share/
     rm $out/share/*/*.py
   '';
 

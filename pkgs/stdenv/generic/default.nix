@@ -61,12 +61,16 @@ let
     ]
       # FIXME this on Darwin; see
       # https://github.com/NixOS/nixpkgs/commit/94d164dd7#commitcomment-22030369
-    ++ lib.optional hostPlatform.isLinux ../../build-support/setup-hooks/audit-tmpdir.sh
+    ++ lib.optionals hostPlatform.isLinux [
+      ../../build-support/setup-hooks/audit-tmpdir.sh
+      ../../build-support/setup-hooks/move-systemd-user-units.sh
+    ]
     ++ [
       ../../build-support/setup-hooks/multiple-outputs.sh
       ../../build-support/setup-hooks/move-sbin.sh
       ../../build-support/setup-hooks/move-lib64.sh
       ../../build-support/setup-hooks/set-source-date-epoch-to-latest.sh
+      ../../build-support/setup-hooks/reproducible-builds.sh
       # TODO use lib.optional instead
       (if hasCC then cc else null)
     ];
@@ -148,9 +152,12 @@ let
         inherit lib config stdenv;
       }) mkDerivation;
 
-      # For convenience, bring in the library functions in lib/ so
-      # packages don't have to do that themselves.
-      inherit lib;
+      # Slated for removal in 21.11
+      lib = if config.allowAliases or true then builtins.trace
+        ( "Warning: `stdenv.lib` is deprecated and will be removed in the next release."
+         + " Please use `lib` instead."
+         + " For more information see https://github.com/NixOS/nixpkgs/issues/108938")
+        lib else throw "`stdenv.lib` is a deprecated alias for `lib`";
 
       inherit fetchurlBoot;
 

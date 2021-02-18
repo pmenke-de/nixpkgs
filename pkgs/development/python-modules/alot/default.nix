@@ -1,4 +1,4 @@
-{ stdenv, lib, buildPythonPackage, python, fetchFromGitHub, fetchpatch, isPy3k
+{ lib, buildPythonPackage, python, fetchFromGitHub, fetchpatch, isPy3k
 , notmuch, urwid, urwidtrees, twisted, python_magic, configobj, mock, file, gpgme
 , service-identity
 , gnupg ? null, sphinx, awk ? null, procps ? null, future ? null
@@ -18,6 +18,10 @@ buildPythonPackage rec {
     rev = version;
     sha256 = "0s94m17yph1gq9f2svipb3bbwbw1s4j3zf2xkg5h91006v8286r6";
   };
+
+  postPatch = ''
+    substituteInPlace alot/settings/manager.py --replace /usr/share "$out/share"
+  '';
 
   nativeBuildInputs = lib.optional withManpage sphinx;
 
@@ -56,7 +60,7 @@ buildPythonPackage rec {
     sed "s,/usr/bin,$out/bin,g" extra/alot.desktop > $out/share/applications/alot.desktop
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     homepage = "https://github.com/pazz/alot";
     description = "Terminal MUA using notmuch mail";
     license = licenses.gpl3;

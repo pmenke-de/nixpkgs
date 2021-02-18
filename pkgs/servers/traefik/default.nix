@@ -1,17 +1,19 @@
-{ stdenv, buildGoModule, fetchFromGitHub, go-bindata, nixosTests }:
+{ lib, fetchzip, buildGoModule, go-bindata, nixosTests }:
 
 buildGoModule rec {
   pname = "traefik";
-  version = "2.2.4";
+  version = "2.4.2";
 
-  src = fetchFromGitHub {
-    owner = "containous";
-    repo = "traefik";
-    rev = "v${version}";
-    sha256 = "1zxifwbrhxaj2pl6kwyk1ivr4in0wd0q01x9ynxzbf6w2yx4xkw2";
+  src = fetchzip {
+    url = "https://github.com/traefik/traefik/releases/download/v${version}/traefik-v${version}.src.tar.gz";
+    sha256 = "sha256-W6NtlIxeRg432RTiaJHu25Izv1VWNqYetzilCr2gPjU=";
+    stripRoot = false;
   };
 
-  vendorSha256 = "0kz7y64k07vlybzfjg6709fdy7krqlv1gkk01nvhs84sk8bnrcvn";
+  vendorSha256 = "sha256-kwA0MtmlUEO1eQFr4NpdsMikEFQc3N3Meolw/xw9dgM=";
+
+  doCheck = false;
+
   subPackages = [ "cmd/traefik" ];
 
   nativeBuildInputs = [ go-bindata ];
@@ -23,12 +25,12 @@ buildGoModule rec {
 
     CODENAME=$(awk -F "=" '/CODENAME=/ { print $2}' script/binary)
 
-    makeFlagsArray+=("-ldflags=\
-      -X github.com/containous/traefik/version.Version=${version} \
-      -X github.com/containous/traefik/version.Codename=$CODENAME")
+    buildFlagsArray+=("-ldflags=\
+      -X github.com/traefik/traefik/v2/pkg/version.Version=${version} \
+      -X github.com/traefik/traefik/v2/pkg/version.Codename=$CODENAME")
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     homepage = "https://traefik.io";
     description = "A modern reverse proxy";
     license = licenses.mit;

@@ -1,28 +1,40 @@
-{ stdenv
+{ lib, stdenv
 , buildPythonPackage
 , fetchPypi
 , argh
 , pathtools
 , pyyaml
 , pkgs
+, pytest-cov
+, pytestCheckHook
 }:
 
 buildPythonPackage rec {
   pname = "watchdog";
-  version = "0.10.2";
+  version = "2.0.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0ss58k33l5vah894lykid6ar6kw7z1f29cl4hzr5xvgs8fvfyq65";
+    sha256 = "sha256-/UtWz74NDZxPxDGs7KdXAKfxLTc33C6csuwrpkloBCU=";
   };
 
-  buildInputs = stdenv.lib.optionals stdenv.isDarwin
+  buildInputs = lib.optionals stdenv.isDarwin
     [ pkgs.darwin.apple_sdk.frameworks.CoreServices ];
-  propagatedBuildInputs = [ argh pathtools pyyaml ];
 
-  doCheck = false;
+  propagatedBuildInputs = [
+    argh
+    pathtools
+    pyyaml
+  ];
 
-  meta = with stdenv.lib; {
+  checkInputs = [
+    pytest-cov
+    pytestCheckHook
+  ];
+
+  pythonImportsCheck = [ "watchdog" ];
+
+  meta = with lib; {
     description = "Python API and shell utilities to monitor file system events";
     homepage = "https://github.com/gorakhargosh/watchdog";
     license = licenses.asl20;

@@ -2,30 +2,38 @@
 
 buildGoModule rec {
   pname = "tailscale";
-  # Tailscale uses "git describe" as version numbers. 0.100.0-153
-  # means "tag v0.100.0 plus 153 commits", which corresponds to the
-  # commit hash below.
-  version = "0.100.0-153";
+  version = "1.4.4";
 
   src = fetchFromGitHub {
     owner = "tailscale";
     repo = "tailscale";
     rev = "v${version}";
-    sha256 = "1alvsbkpmkra26imhr2927jqwqxcp9id6y8l9mgxhyh3z7qzql8w";
+    sha256 = "sha256-zrKkBbsvIqJkPysKx3nJ3EIbePWMZCX9eegekAoqMqk=";
   };
 
   nativeBuildInputs = [ makeWrapper ];
 
   CGO_ENABLED = 0;
 
-  goPackagePath = "tailscale.com";
-  vendorSha256 = "0xp8dq3bsaipn9hyp3daqljj3k7zrkbbyk9jph0x59qwpljl0nhz";
+  vendorSha256 = "sha256-WvojOnGQ/ssBkoQwIlOVsaEUJmi2ugqgtTAVKJg8Spk=";
+
+  doCheck = false;
+
   subPackages = [ "cmd/tailscale" "cmd/tailscaled" ];
+
+  preBuild = ''
+    export buildFlagsArray=(
+      -tags="xversion"
+      -ldflags="-X tailscale.com/version.Long=${version} -X tailscale.com/version.Short=${version}"
+    )
+  '';
 
   postInstall = ''
     wrapProgram $out/bin/tailscaled --prefix PATH : ${
       lib.makeBinPath [ iproute iptables ]
     }
+    sed -i -e "s#/usr/sbin#$out/bin#" -e "/^EnvironmentFile/d" ./cmd/tailscaled/tailscaled.service
+    install -D -m0444 -t $out/lib/systemd/system ./cmd/tailscaled/tailscaled.service
   '';
 
   meta = with lib; {

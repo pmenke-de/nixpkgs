@@ -1,14 +1,14 @@
-{ stdenv, fetchFromGitHub, postgresql, openssl, zlib, readline }:
+{ lib, stdenv, fetchFromGitHub, postgresql, openssl, zlib, readline }:
 
 stdenv.mkDerivation rec {
   pname = "pg_auto_failover";
-  version = "1.3";
+  version = "1.4.2";
 
   src = fetchFromGitHub {
     owner = "citusdata";
     repo = pname;
     rev = "v${version}";
-    sha256 = "1si4k37azigp7hqibnkzr1p6zknadxm7pb33lygrxarqkifx67j4";
+    sha256 = "030vm83ksfi4daypr4hamvvfs4g1ckww4ldg7rrk6c6hqkppykpa";
   };
 
   buildInputs = [ postgresql openssl zlib readline ];
@@ -20,7 +20,7 @@ stdenv.mkDerivation rec {
     install -D -t $out/share/postgresql/extension src/monitor/pgautofailover.control
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "PostgreSQL extension and service for automated failover and high-availability";
     homepage = "https://github.com/citusdata/pg_auto_failover";
     maintainers = [ maintainers.marsam ];

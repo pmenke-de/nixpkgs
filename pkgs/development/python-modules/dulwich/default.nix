@@ -1,15 +1,24 @@
-{ stdenv, buildPythonPackage, fetchPypi
-, urllib3, certifi
-, gevent, geventhttpclient, mock, fastimport
-, git, glibcLocales }:
+{ lib
+, stdenv
+, buildPythonPackage
+, certifi
+, fastimport
+, fetchPypi
+, gevent
+, geventhttpclient
+, git
+, glibcLocales
+, mock
+, urllib3
+}:
 
 buildPythonPackage rec {
-  version = "0.20.2";
+  version = "0.20.18";
   pname = "dulwich";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "273fa401e11c215ed81a4a0c8474ed06aeae31900974fdd4a87af5df0e458115";
+    sha256 = "sha256-ATE4f5uZrsxprJhlWzkx8q1D2lPTpj4FD6Om1iYKxVQ=";
   };
 
   LC_ALL = "en_US.UTF-8";
@@ -21,10 +30,17 @@ buildPythonPackage rec {
 
   doCheck = !stdenv.isDarwin;
 
-  meta = with stdenv.lib; {
+  pythonImportsCheck = [ "dulwich" ];
+
+  meta = with lib; {
     description = "Simple Python implementation of the Git file formats and protocols";
-    homepage = "https://samba.org/~jelmer/dulwich/";
-    license = licenses.gpl2Plus;
+    longDescription = ''
+      Dulwich is a Python implementation of the Git file formats and protocols, which
+      does not depend on Git itself. All functionality is available in pure Python.
+    '';
+    homepage = "https://www.dulwich.io/";
+    changelog = "https://github.com/dulwich/dulwich/blob/dulwich-${version}/NEWS";
+    license = with licenses; [ asl20 gpl2Plus ];
     maintainers = with maintainers; [ koral ];
   };
 }

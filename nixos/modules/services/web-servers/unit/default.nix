@@ -28,10 +28,12 @@ in {
         description = "Group account under which unit runs.";
       };
       stateDir = mkOption {
+        type = types.path;
         default = "/var/spool/unit";
         description = "Unit data directory.";
       };
       logDir = mkOption {
+        type = types.path;
         default = "/var/log/unit";
         description = "Unit log directory.";
       };
@@ -120,9 +122,12 @@ in {
         ProtectHome = true;
         PrivateTmp = true;
         PrivateDevices = true;
+        PrivateUsers = false;
         ProtectHostname = true;
+        ProtectClock = true;
         ProtectKernelTunables = true;
         ProtectKernelModules = true;
+        ProtectKernelLogs = true;
         ProtectControlGroups = true;
         RestrictAddressFamilies = [ "AF_UNIX" "AF_INET" "AF_INET6" ];
         LockPersonality = true;

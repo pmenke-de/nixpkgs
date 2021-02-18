@@ -1,23 +1,46 @@
-{ stdenv, fetchFromGitHub, asciidoc-full, gperf, perl, autoreconfHook, zlib, makeWrapper }:
+{ lib
+, stdenv
+, fetchFromGitHub
+, substituteAll
+, binutils
+, asciidoc
+, cmake
+, perl
+, zstd
+, xcodebuild
+, makeWrapper
+}:
 
 let ccache = stdenv.mkDerivation rec {
   pname = "ccache";
-  version = "3.7.10";
+  version = "4.2";
 
   src = fetchFromGitHub {
-    owner = "ccache";
-    repo = "ccache";
+    owner = pname;
+    repo = pname;
     rev = "v${version}";
-    sha256 = "0v6pvj50y18fxh2f6cx6xyg545xcpxfmrcg9bzbc6lc5acrvvjm7";
+    sha256 = "1lr9804xyzbs72f9jbbzy1fjqxwrwpb4rp431wqialvms4251d8f";
   };
 
-  nativeBuildInputs = [ asciidoc-full autoreconfHook gperf perl ];
+  patches = lib.optional stdenv.isDarwin (substituteAll {
+    src = ./force-objdump-on-darwin.patch;
+    objdump = "${binutils.bintools}/bin/objdump";
+  });
 
-  buildInputs = [ zlib ];
+  nativeBuildInputs = [ asciidoc cmake perl ];
+
+  buildInputs = [ zstd ];
 
   outputs = [ "out" "man" ];
 
-  doCheck = !stdenv.isDarwin;
+  doCheck = true;
+  checkInputs = lib.optional stdenv.isDarwin xcodebuild;
+  checkPhase = ''
+    export HOME=$(mktemp -d)
+    ctest --output-on-failure ${lib.optionalString stdenv.isDarwin ''
+      -E '^(test.nocpp2|test.modules)$'
+    ''}
+  '';
 
   passthru = {
     # A derivation that provides gcc and g++ commands, but that
@@ -37,7 +60,7 @@ let ccache = stdenv.mkDerivation rec {
           local cname="$1"
           if [ -x "${unwrappedCC}/bin/$cname" ]; then
             makeWrapper ${ccache}/bin/ccache $out/bin/$cname \
-              --run ${stdenv.lib.escapeShellArg extraConfig} \
+              --run ${lib.escapeShellArg extraConfig} \
               --add-flags ${unwrappedCC}/bin/$cname
           fi
         }
@@ -61,11 +84,12 @@ let ccache = stdenv.mkDerivation rec {
     };
   };
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Compiler cache for fast recompilation of C/C++ code";
-    homepage = "https://ccache.dev/";
+    homepage = "https://ccache.dev";
     downloadPage = "https://ccache.dev/download.html";
     license = licenses.gpl3Plus;
+    maintainers = with maintainers; [ metadark r-burns ];
     platforms = platforms.unix;
   };
 };

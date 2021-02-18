@@ -26,6 +26,7 @@
 , libXext
 , libXfixes
 , libXi
+, libxkbcommon
 , libXrandr
 , libXrender
 , libXScrnSaver
@@ -37,7 +38,7 @@
 , udev
 , xorg
 , zlib
-, xdg_utils
+, xdg-utils
 , wrapGAppsHook
 }:
 
@@ -61,6 +62,7 @@ rpath = lib.makeLibraryPath [
   libdrm
   libpulseaudio
   libX11
+  libxkbcommon
   libXScrnSaver
   libXcomposite
   libXcursor
@@ -77,7 +79,7 @@ rpath = lib.makeLibraryPath [
   nss
   pango
   udev
-  xdg_utils
+  xdg-utils
   xorg.libxcb
   zlib
 ];
@@ -86,16 +88,17 @@ in
 
 stdenv.mkDerivation rec {
   pname = "brave";
-  version = "1.11.97";
+  version = "1.19.88";
 
   src = fetchurl {
     url = "https://github.com/brave/brave-browser/releases/download/v${version}/brave-browser_${version}_amd64.deb";
-    sha256 = "1wmjwk98fvzy5slyqpzpnn1mx663q3pvcyr3fzcinf6v971vz3q2";
+    sha256 = "jySedvm9V3O4kri1PgoqC0OsC1gvB0Nwx8leoUZnHK0=";
   };
 
   dontConfigure = true;
   dontBuild = true;
   dontPatchELF = true;
+  doInstallCheck = true;
 
   nativeBuildInputs = [ dpkg wrapGAppsHook ];
 
@@ -141,11 +144,18 @@ stdenv.mkDerivation rec {
       done
 
       # Replace xdg-settings and xdg-mime
-      ln -sf ${xdg_utils}/bin/xdg-settings $out/opt/brave.com/brave/xdg-settings
-      ln -sf ${xdg_utils}/bin/xdg-mime $out/opt/brave.com/brave/xdg-mime
+      ln -sf ${xdg-utils}/bin/xdg-settings $out/opt/brave.com/brave/xdg-settings
+      ln -sf ${xdg-utils}/bin/xdg-mime $out/opt/brave.com/brave/xdg-mime
   '';
 
-  meta = with stdenv.lib; {
+  installCheckPhase = ''
+    # Bypass upstream wrapper which suppresses errors
+    $out/opt/brave.com/brave/brave --version
+  '';
+
+  passthru.updateScript = ./update.sh;
+
+  meta = with lib; {
     homepage = "https://brave.com/";
     description = "Privacy-oriented browser for Desktop and Laptop computers";
     changelog = "https://github.com/brave/brave-browser/blob/v${version}/CHANGELOG.md";
@@ -155,7 +165,7 @@ stdenv.mkDerivation rec {
       contribute to your favorite creators automatically.
     '';
     license = licenses.mpl20;
-    maintainers = with maintainers; [ uskudnik rht jefflabonte ];
+    maintainers = with maintainers; [ uskudnik rht jefflabonte nasirhm ];
     platforms = [ "x86_64-linux" ];
   };
 }

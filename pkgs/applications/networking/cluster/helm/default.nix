@@ -1,16 +1,18 @@
-{ stdenv, buildGoModule, fetchFromGitHub, installShellFiles }:
+{ lib, buildGoModule, fetchFromGitHub, installShellFiles }:
 
 buildGoModule rec {
   pname = "helm";
-  version = "3.2.4";
+  version = "3.5.2";
 
   src = fetchFromGitHub {
     owner = "helm";
     repo = "helm";
     rev = "v${version}";
-    sha256 = "1plpk8qnv11d47qz93h57abjchyp6ahgyazyp0c6rv24vb9fp9zi";
+    sha256 = "sha256-XFWJtzKQrZL6lcr8JNiEQ8ldG5289x5pE21E8XgoYkA=";
   };
-  vendorSha256 = "0j25m56cwzjd9b75v7xlb26q81bsmln77k23h9n8v2f2gqwwpkrl";
+  vendorSha256 = "sha256-mjWQxCCtTgj1VCFjnuJWgDjwMt/r4jiFC9Of+CXRgPg=";
+
+  doCheck = false;
 
   subPackages = [ "cmd/helm" ];
   buildFlagsArray = [ "-ldflags=-w -s -X helm.sh/helm/v3/internal/version.version=v${version}" ];
@@ -22,10 +24,10 @@ buildGoModule rec {
     installShellCompletion helm.{bash,zsh}
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     homepage = "https://github.com/kubernetes/helm";
     description = "A package manager for kubernetes";
     license = licenses.asl20;
-    maintainers = with maintainers; [ rlupton20 edude03 saschagrunert Frostman ];
+    maintainers = with maintainers; [ rlupton20 edude03 saschagrunert Frostman Chili-Man ];
   };
 }

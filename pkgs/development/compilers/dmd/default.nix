@@ -16,7 +16,7 @@ let
       name = "dmd.conf";
       text = (lib.generators.toINI {} {
         Environment = {
-          DFLAGS = ''-I@out@/include/dmd -L-L@out@/lib -fPIC ${stdenv.lib.optionalString (!targetPackages.stdenv.cc.isClang) "-L--export-dynamic"}'';
+          DFLAGS = ''-I@out@/include/dmd -L-L@out@/lib -fPIC ${lib.optionalString (!targetPackages.stdenv.cc.isClang) "-L--export-dynamic"}'';
         };
       });
   };
@@ -77,16 +77,16 @@ stdenv.mkDerivation rec {
   postPatch = ''
       substituteInPlace dmd/test/dshell/test6952.d --replace "/usr/bin/env bash" "${bash}/bin/bash"
   ''
-  + stdenv.lib.optionalString stdenv.hostPlatform.isLinux ''
+  + lib.optionalString stdenv.hostPlatform.isLinux ''
       substituteInPlace phobos/std/socket.d --replace "assert(ih.addrList[0] == 0x7F_00_00_01);" ""
   ''
-  + stdenv.lib.optionalString stdenv.hostPlatform.isDarwin ''
+  + lib.optionalString stdenv.hostPlatform.isDarwin ''
       substituteInPlace phobos/std/socket.d --replace "foreach (name; names)" "names = []; foreach (name; names)"
   '';
 
   nativeBuildInputs = [ makeWrapper unzip which gdb git ]
 
-  ++ stdenv.lib.optional stdenv.hostPlatform.isDarwin (with darwin.apple_sdk.frameworks; [
+  ++ lib.optional stdenv.hostPlatform.isDarwin (with darwin.apple_sdk.frameworks; [
     Foundation
   ]);
 
@@ -115,13 +115,21 @@ stdenv.mkDerivation rec {
 
   doCheck = true;
 
+  # NOTE: Purity check is disabled for checkPhase because it doesn't fare well
+  # with the DMD linker. See https://github.com/NixOS/nixpkgs/issues/97420
   checkPhase = ''
     cd dmd
-    make -j$NIX_BUILD_CORES -C test -f Makefile PIC=1 CC=$CXX DMD=${pathToDmd} BUILD=release SHELL=$SHELL
+    NIX_ENFORCE_PURITY= \
+      make -j$NIX_BUILD_CORES -C test -f Makefile PIC=1 CC=$CXX DMD=${pathToDmd} BUILD=release SHELL=$SHELL
+
     cd ../druntime
-    make -j$NIX_BUILD_CORES -f posix.mak unittest PIC=1 DMD=${pathToDmd} BUILD=release
+    NIX_ENFORCE_PURITY= \
+      make -j$NIX_BUILD_CORES -f posix.mak unittest PIC=1 DMD=${pathToDmd} BUILD=release
+
     cd ../phobos
-    make -j$NIX_BUILD_CORES -f posix.mak unittest BUILD=release ENABLE_RELEASE=1 PIC=1 DMD=${pathToDmd} DFLAGS="-version=TZDatabaseDir -version=LibcurlPath -J$(pwd)"
+    NIX_ENFORCE_PURITY= \
+      make -j$NIX_BUILD_CORES -f posix.mak unittest BUILD=release ENABLE_RELEASE=1 PIC=1 DMD=${pathToDmd} DFLAGS="-version=TZDatabaseDir -version=LibcurlPath -J$(pwd)"
+
     cd ..
   '';
 
@@ -155,7 +163,7 @@ stdenv.mkDerivation rec {
       substitute ${dmdConfFile} "$out/bin/dmd.conf" --subst-var out
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Official reference compiler for the D language";
     homepage = "http://dlang.org/";
     # Everything is now Boost licensed, even the backend.

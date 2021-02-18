@@ -2,17 +2,19 @@
 
 buildPythonPackage rec {
   pname = "hvac";
-  version = "0.10.4";
+  version = "0.10.7";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0yhywm8f86pc4f7ivvbwicwhzf0khjqp9jj77pqy6nha6znvpvnh";
+    sha256 = "6ee2ba6002f11151472fa873b6637d902fc6045a2193aea08b39ae8147c230ba";
   };
 
   propagatedBuildInputs = [ requests six ];
 
   # Requires running a Vault server
   doCheck = false;
+
+  pythonImportsCheck = [ "hvac" ];
 
   meta = with lib; {
     description = "HashiCorp Vault API client";

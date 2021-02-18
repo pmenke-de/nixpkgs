@@ -2,42 +2,55 @@
 , pythonOlder
 , buildPythonPackage
 , fetchFromGitHub
-, fetchpatch
+  # C Inputs
+, blas
+, catch2
 , cmake
-, cvxpy
+, conan
 , cython
+, fmt
+, muparserx
+, ninja
+, nlohmann_json
+, spdlog
+  # Python Inputs
+, cvxpy
 , numpy
-, openblas
 , pybind11
 , scikit-build
-, spdlog
   # Check Inputs
-, qiskit-terra
 , pytestCheckHook
-, python
+, ddt
+, fixtures
+, pytest-timeout
+, qiskit-terra
 }:
 
 buildPythonPackage rec {
   pname = "qiskit-aer";
-  version = "0.5.2";
+  version = "0.7.4";
 
-  disabled = pythonOlder "3.5";
+  disabled = pythonOlder "3.6";
 
   src = fetchFromGitHub {
     owner = "Qiskit";
     repo = "qiskit-aer";
     rev = version;
-    fetchSubmodules = true; # fetch muparserx and other required libraries
-    sha256 = "0vw6b69h8pvzxhaz3k8sg9ac792gz3kklfv0izs6ra83y1dfwhjz";
+    sha256 = "sha256-o6c1ZcGFZ3pwinzMTif1nqF29Wq0Nog1++ZoJGuiKxo=";
   };
 
   nativeBuildInputs = [
     cmake
+    ninja
     scikit-build
   ];
 
   buildInputs = [
-    openblas
+    blas
+    catch2
+    fmt
+    muparserx
+    nlohmann_json
     spdlog
   ];
 
@@ -49,21 +62,14 @@ buildPythonPackage rec {
   ];
 
   postPatch = ''
-    # remove dependency on PyPi cmake package, which isn't in Nixpkgs
-    substituteInPlace setup.py --replace "'cmake!=3.17,!=3.17.0'" ""
+    substituteInPlace setup.py --replace "'cmake!=3.17,!=3.17.0'," ""
+  '';
+
+  preBuild = ''
+    export DISABLE_CONAN=1
   '';
 
   dontUseCmakeConfigure = true;
-
-  cmakeFlags = [
-    "-DBUILD_TESTS=True"
-    "-DAER_THRUST_BACKEND=OMP"
-  ];
-
-  # Needed to find qiskit.providers.aer modules in cython. This exists in GitHub, don't know why it isn't copied by default
-  postFixup = ''
-    touch $out/${python.sitePackages}/qiskit/__init__.pxd
-  '';
 
   # *** Testing ***
 
@@ -72,15 +78,21 @@ buildPythonPackage rec {
     "qiskit.providers.aer.backends.qasm_simulator"
     "qiskit.providers.aer.backends.controller_wrappers" # Checks C++ files built correctly. Only exists if built & moved to output
   ];
-  checkInputs = [
-    qiskit-terra
-    pytestCheckHook
-  ];
-  dontUseSetuptoolsCheck = true;  # Otherwise runs tests twice
+  # Slow tests
   disabledTests = [
-    # broken with cvxpy >= 1.1.0, see https://github.com/Qiskit/qiskit-aer/issues/779.
-    # TODO: Remove once resolved, probably next qiskit-aer version
-    "test_clifford"
+    "test_paulis_1_and_2_qubits"
+    "test_3d_oscillator"
+  ];
+  checkInputs = [
+    pytestCheckHook
+    ddt
+    fixtures
+    pytest-timeout
+    qiskit-terra
+  ];
+  pytestFlagsArray = [
+    "--timeout=30"
+    "--durations=10"
   ];
 
   preCheck = ''
@@ -92,19 +104,14 @@ buildPythonPackage rec {
     # Add qiskit-aer compiled files to cython include search
     pushd $HOME
   '';
-  postCheck = ''
-    popd
-  '';
+  postCheck = "popd";
 
   meta = with lib; {
     description = "High performance simulators for Qiskit";
     homepage = "https://qiskit.org/aer";
     downloadPage = "https://github.com/QISKit/qiskit-aer/releases";
+    changelog = "https://qiskit.org/documentation/release_notes.html";
     license = licenses.asl20;
     maintainers = with maintainers; [ drewrisinger ];
-    # Doesn't build on aarch64 (libmuparserx issue).
-    # Can fix by building muparserx from source (https://github.com/beltoforion/muparserx)
-    # or in future updates (e.g. Raspberry Pi enabled via https://github.com/Qiskit/qiskit-aer/pull/651 & https://github.com/Qiskit/qiskit-aer/pull/660)
-    platforms = platforms.x86_64;
   };
 }

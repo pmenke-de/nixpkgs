@@ -9,7 +9,7 @@ let
 in
 {
   name = "agda";
-  meta = with pkgs.stdenv.lib.maintainers; {
+  meta = with pkgs.lib.maintainers; {
     maintainers = [ alexarice turion ];
   };
 
@@ -23,6 +23,13 @@ in
   };
 
   testScript = ''
+    assert (
+        "${pkgs.agdaPackages.lib.interfaceFile "Everything.agda"}" == "Everything.agdai"
+    ), "wrong interface file for Everything.agda"
+    assert (
+        "${pkgs.agdaPackages.lib.interfaceFile "tmp/Everything.agda.md"}" == "tmp/Everything.agdai"
+    ), "wrong interface file for tmp/Everything.agda.md"
+
     # Minimal script that typechecks
     machine.succeed("touch TestEmpty.agda")
     machine.succeed("agda TestEmpty.agda")
@@ -31,11 +38,15 @@ in
     machine.succeed('echo "import IO" > TestIO.agda')
     machine.succeed("agda -l standard-library -i . TestIO.agda")
 
-    # # Hello world
+    # Hello world
     machine.succeed(
         "cp ${hello-world} HelloWorld.agda"
     )
     machine.succeed("agda -l standard-library -i . -c HelloWorld.agda")
+    # Check execution
+    assert "Hello World!" in machine.succeed(
+        "./HelloWorld"
+    ), "HelloWorld does not run properly"
   '';
 }
 )

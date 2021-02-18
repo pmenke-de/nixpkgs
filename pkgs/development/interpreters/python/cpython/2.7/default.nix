@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, fetchpatch
+{ lib, stdenv, fetchurl, fetchpatch
 , bzip2
 , expat
 , libffi
@@ -18,12 +18,17 @@
 , ucsEncoding ? 4
 # For the Python package set
 , packageOverrides ? (self: super: {})
-, buildPackages
+, pkgsBuildBuild
+, pkgsBuildHost
+, pkgsBuildTarget
+, pkgsHostHost
+, pkgsTargetTarget
 , sourceVersion
 , sha256
 , passthruFun
 , static ? false
 , enableOptimizations ? (!stdenv.isDarwin)
+, pythonAttr ? "python${sourceVersion.major}${sourceVersion.minor}"
 }:
 
 assert x11Support -> tcl != null
@@ -31,11 +36,11 @@ assert x11Support -> tcl != null
                   && xlibsWrapper != null
                   && libX11 != null;
 
-with stdenv.lib;
+with lib;
 
 let
-
-  pythonForBuild = buildPackages.${"python${sourceVersion.major}${sourceVersion.minor}"};
+  buildPackages = pkgsBuildHost;
+  inherit (passthru) pythonForBuild;
 
   passthru = passthruFun rec {
     inherit self sourceVersion packageOverrides;
@@ -44,7 +49,12 @@ let
     executable = libPrefix;
     pythonVersion = with sourceVersion; "${major}.${minor}";
     sitePackages = "lib/${libPrefix}/site-packages";
-    inherit hasDistutilsCxxPatch pythonForBuild;
+    inherit hasDistutilsCxxPatch;
+    pythonOnBuildForBuild = pkgsBuildBuild.${pythonAttr};
+    pythonOnBuildForHost = pkgsBuildHost.${pythonAttr};
+    pythonOnBuildForTarget = pkgsBuildTarget.${pythonAttr};
+    pythonOnHostForHost = pkgsHostHost.${pythonAttr};
+    pythonOnTargetForTarget = pkgsTargetTarget.${pythonAttr} or {};
   } // {
     inherit ucsEncoding;
   };
@@ -90,6 +100,9 @@ let
 
       # Backport from CPython 3.8 of a good list of tests to run for PGO.
       ./profile-task.patch
+
+      # Patch is likely to go away in the next release (if there is any)
+      ./CVE-2019-20907.patch
     ] ++ optionals (x11Support && stdenv.isDarwin) [
       ./use-correct-tcl-tk-on-darwin.patch
     ] ++ optionals stdenv.isLinux [
@@ -100,6 +113,9 @@ let
       # (since it will do a futile invocation of gcc (!) to find
       # libuuid, slowing down program startup a lot).
       ./no-ldconfig.patch
+
+      # Fix ctypes.util.find_library with gcc10.
+      ./find_library-gcc10.patch
 
     ] ++ optionals stdenv.hostPlatform.isCygwin [
       ./2.5.2-ctypes-util-find_library.patch
@@ -199,7 +215,7 @@ let
   };
 
   # Python 2.7 needs this
-  crossCompileEnv = stdenv.lib.optionalAttrs (stdenv.hostPlatform != stdenv.buildPlatform)
+  crossCompileEnv = lib.optionalAttrs (stdenv.hostPlatform != stdenv.buildPlatform)
                       { _PYTHON_HOST_PLATFORM = stdenv.hostPlatform.config; };
 
   # Build the basic Python interpreter without modules that have
@@ -211,7 +227,7 @@ in with passthru; stdenv.mkDerivation ({
 
     inherit src patches buildInputs nativeBuildInputs preConfigure configureFlags;
 
-    LDFLAGS = stdenv.lib.optionalString (!stdenv.isDarwin) "-lgcc_s";
+    LDFLAGS = lib.optionalString (!stdenv.isDarwin) "-lgcc_s";
     inherit (mkPaths buildInputs) C_INCLUDE_PATH LIBRARY_PATH;
 
     NIX_CFLAGS_COMPILE = optionalString stdenv.isDarwin "-msse2"
@@ -282,9 +298,9 @@ in with passthru; stdenv.mkDerivation ({
         hierarchical packages; exception-based error handling; and very
         high level dynamic data types.
       '';
-      license = stdenv.lib.licenses.psfl;
-      platforms = stdenv.lib.platforms.all;
-      maintainers = with stdenv.lib.maintainers; [ fridh ];
+      license = lib.licenses.psfl;
+      platforms = lib.platforms.all;
+      maintainers = with lib.maintainers; [ fridh ];
       # Higher priority than Python 3.x so that `/bin/python` points to `/bin/python2`
       # in case both 2 and 3 are installed.
       priority = -100;

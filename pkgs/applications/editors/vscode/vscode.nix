@@ -6,13 +6,17 @@ let
   plat = {
     x86_64-linux = "linux-x64";
     x86_64-darwin = "darwin";
+    aarch64-linux = "linux-arm64";
+    armv7l-linux = "linux-armhf";
   }.${system};
 
   archive_fmt = if system == "x86_64-darwin" then "zip" else "tar.gz";
 
   sha256 = {
-    x86_64-linux = "1c8gi2001p2f0zc165cqwwf9f8ls34fgg040qn9l08za7djb9hyv";
-    x86_64-darwin = "06n17s3qa2jkmg5qx3zvshz6rvdx33dhxn65j0x5mi62dv93gjgg";
+    x86_64-linux = "0c0m5qkqv3zhcxmwx72b7z67sjcd1miv8d10kxpk9vffyrxkmj93";
+    x86_64-darwin = "1spd5rbhra4n38lp0sgxd2cr1bngsmi32a43g02vdmmhkmk0iixc";
+    aarch64-linux = "1ql3hn6c59g7d0cwhg54ixww2i9jmkjw3nyzz97yw8wk63zwz024";
+    armv7l-linux = "0pdqcbw7rygvdzys787kf8ag17g9qyv7k33dqhi5h2zc96j867c0";
   }.${system};
 in
   callPackage ./generic.nix rec {
@@ -21,7 +25,7 @@ in
 
     # Please backport all compatible updates to the stable release.
     # This is important for the extension ecosystem.
-    version = "1.46.1";
+    version = "1.53.2";
     pname = "vscode";
 
     executableName = "code" + lib.optionalString isInsiders "-insiders";
@@ -36,7 +40,7 @@ in
 
     sourceRoot = "";
 
-    meta = with stdenv.lib; {
+    meta = with lib; {
       description = ''
         Open source source code editor developed by Microsoft for Windows,
         Linux and macOS
@@ -52,6 +56,6 @@ in
       downloadPage = "https://code.visualstudio.com/Updates";
       license = licenses.unfree;
       maintainers = with maintainers; [ eadwu synthetica ];
-      platforms = [ "x86_64-linux" "x86_64-darwin" ];
+      platforms = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "armv7l-linux" ];
     };
   }

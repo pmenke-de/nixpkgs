@@ -1,4 +1,4 @@
-{ stdenv, lib, buildPythonPackage, fetchurl, jieba, pkuseg, spacy }:
+{ lib, buildPythonPackage, fetchurl, jieba, pkuseg, spacy }:
 let
   buildModelPackage = { pname, version, sha256, license }:
   let
@@ -14,7 +14,9 @@ let
     propagatedBuildInputs = [ spacy ]
       ++ lib.optionals (lang == "zh") [ jieba pkuseg ];
 
-    meta = with stdenv.lib; {
+    pythonImportsCheck = [ pname ];
+
+    meta = with lib; {
       description = "Models for the spaCy NLP library";
       homepage    = "https://github.com/explosion/spacy-models";
       license     = licenses.${license};
@@ -22,8 +24,8 @@ let
     };
   };
 
-  makeModelSet = models: with stdenv.lib; listToAttrs (map (m: nameValuePair m.pname (buildModelPackage m)) models);
+  makeModelSet = models: with lib; listToAttrs (map (m: nameValuePair m.pname (buildModelPackage m)) models);
 
-in makeModelSet (stdenv.lib.importJSON ./models.json)
+in makeModelSet (lib.importJSON ./models.json)
 
 # cat models.json | jq -r '.[] | @uri "https://github.com/explosion/spacy-models/releases/download/\(.pname)-\(.version)/\(.pname)-\(.version).tar.gz"' | xargs -n1 nix-prefetch-url

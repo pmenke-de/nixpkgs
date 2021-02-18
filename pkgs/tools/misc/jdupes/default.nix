@@ -1,14 +1,14 @@
-{ stdenv, fetchFromGitHub }:
+{ lib, stdenv, fetchFromGitHub }:
 
 stdenv.mkDerivation rec {
   pname = "jdupes";
-  version = "1.17.0";
+  version = "1.19.1";
 
   src = fetchFromGitHub {
     owner = "jbruchon";
     repo  = "jdupes";
     rev   = "v${version}";
-    sha256 = "1c81xcjzfp4fd2zbq3jbknkqlrn0l5wkr08sgvcsxxvqa80338xv";
+    sha256 = "sha256-1gx3rStqIxLt/iRgpdp5z7tX1/wA0miZ1y5WTeGQ1Vs=";
     # Unicode file names lead to different checksums on HFS+ vs. other
     # filesystems because of unicode normalisation. The testdir
     # directories have such files and will be removed.
@@ -19,10 +19,11 @@ stdenv.mkDerivation rec {
 
   makeFlags = [
     "PREFIX=${placeholder "out"}"
-    "HARDEN=1"
-  ] ++ stdenv.lib.optionals stdenv.isLinux [
+  ] ++ lib.optionals stdenv.isLinux [
     "ENABLE_DEDUPE=1"
     "STATIC_DEDUPE_H=1"
+  ] ++ lib.optionals stdenv.cc.isGNU [
+    "HARDEN=1"
   ];
 
   enableParallelBuilding = true;
@@ -33,7 +34,7 @@ stdenv.mkDerivation rec {
     install -Dm444 -t $out/share/doc/jdupes CHANGES LICENSE README.md
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "A powerful duplicate file finder and an enhanced fork of 'fdupes'";
     longDescription = ''
       jdupes is a program for identifying and taking actions upon

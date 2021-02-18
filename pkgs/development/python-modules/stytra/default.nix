@@ -1,4 +1,4 @@
-{ lib, pkgs, buildPythonPackage, fetchPypi, isPy3k, callPackage
+{ lib, buildPythonPackage, fetchPypi, isPy3k
 , opencv3
 , pyqt5
 , pyqtgraph
@@ -19,7 +19,7 @@
 , imageio-ffmpeg
 , av
 , nose
-, pytest
+, pytestCheckHook
 , pyserial
 , arrayqueues
 , colorspacious
@@ -30,20 +30,24 @@
 
 buildPythonPackage rec {
   pname = "stytra";
-  version = "0.8.33";
+  version = "0.8.34";
   disabled = !isPy3k;
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "b0aacc8e2c1bba33c337ebc76c0d8f2971c113d298aea2a375d84a5eeff5d83e";
+    sha256 = "aab9d07575ef599a9c0ae505656e3c03ec753462df3c15742f1f768f2b578f0a";
   };
-  doCheck = false;
+
+  # crashes python
+  preCheck = ''
+    rm stytra/tests/test_z_experiments.py
+  '';
+
   checkInputs = [
     nose
-    pytest
+    pytestCheckHook
     pyserial
   ];
-
 
   propagatedBuildInputs = [
     opencv3

@@ -7,16 +7,17 @@
 # the VM in the host.  On the other hand, the root filesystem is a
 # read/writable disk image persistent across VM reboots.
 
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, options, ... }:
 
 with lib;
 with import ../../lib/qemu-flags.nix { inherit pkgs; };
 
 let
 
-  qemu = config.system.build.qemu or pkgs.qemu_test;
 
   cfg = config.virtualisation;
+
+  qemu = cfg.qemu.package;
 
   consoles = lib.concatMapStringsSep " " (c: "console=${c}") cfg.qemu.consoles;
 
@@ -212,10 +213,8 @@ let
             cp ${bootDisk}/efi-vars.fd "$NIX_EFI_VARS" || exit 1
             chmod 0644 "$NIX_EFI_VARS" || exit 1
           fi
-        '' else ''
-        ''}
-      '' else ''
-      ''}
+        '' else ""}
+      '' else ""}
 
       cd $TMPDIR
       idx=0
@@ -263,10 +262,9 @@ let
                 efiVars=$out/efi-vars.fd
                 cp ${efiVarsDefault} $efiVars
                 chmod 0644 $efiVars
-              '' else ''
-              ''}
+              '' else ""}
             '';
-          buildInputs = [ pkgs.utillinux ];
+          buildInputs = [ pkgs.util-linux ];
           QEMU_OPTS = "-nographic -serial stdio -monitor none"
                       + lib.optionalString cfg.useEFIBoot (
                         " -drive if=pflash,format=raw,unit=0,readonly=on,file=${efiFirmware}"
@@ -342,10 +340,11 @@ in
 {
   imports = [
     ../profiles/qemu-guest.nix
-   ./docker-preloader.nix
   ];
 
   options = {
+
+    virtualisation.fileSystems = options.fileSystems;
 
     virtualisation.memorySize =
       mkOption {
@@ -480,6 +479,14 @@ in
       };
 
     virtualisation.qemu = {
+      package =
+        mkOption {
+          type = types.package;
+          default = pkgs.qemu;
+          example = "pkgs.qemu_test";
+          description = "QEMU package to use.";
+        };
+
       options =
         mkOption {
           type = types.listOf types.unspecified;
@@ -732,6 +739,7 @@ in
     # attribute should be disregarded for the purpose of building a VM
     # test image (since those filesystems don't exist in the VM).
     fileSystems = mkVMOverride (
+      cfg.fileSystems //
       { "/".device = cfg.bootDevice;
         ${if cfg.writableStore then "/nix/.ro-store" else "/nix/store"} =
           { device = "store";
@@ -814,16 +822,19 @@ in
         (isEnabled "VIRTIO_PCI")
         (isEnabled "VIRTIO_NET")
         (isEnabled "EXT4_FS")
+        (isEnabled "NET_9P_VIRTIO")
+        (isEnabled "9P_FS")
         (isYes "BLK_DEV")
         (isYes "PCI")
-        (isYes "EXPERIMENTAL")
         (isYes "NETDEVICES")
         (isYes "NET_CORE")
         (isYes "INET")
         (isYes "NETWORK_FILESYSTEMS")
-      ] ++ optional (!cfg.graphics) [
+      ] ++ optionals (!cfg.graphics) [
         (isYes "SERIAL_8250_CONSOLE")
         (isYes "SERIAL_8250")
+      ] ++ optionals (cfg.writableStore) [
+        (isEnabled "OVERLAY_FS")
       ];
 
   };

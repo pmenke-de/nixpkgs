@@ -25,11 +25,11 @@
 }:
 
 let
-  version = "3.3.1";
+  version = "3.7.2";
 
   src = fetchurl {
     url = "https://github.com/bazelbuild/bazel/releases/download/${version}/bazel-${version}-dist.zip";
-    sha256 = "0ir796kl8r9hpr3li26qsdy1z2lx2bv82zmk4a2s7q64clyg9wg0";
+    sha256 = "1cfrbs23lg0jnl22ddylx3clcjw7bdpbix7r5lqibab346s5n9fy";
   };
 
   # Update with `eval $(nix-build -A bazel.updater)`,
@@ -48,13 +48,16 @@ let
       srcs.bazel_skylib
       srcs.io_bazel_rules_sass
       srcs.platforms
-      (if stdenv.hostPlatform.isDarwin
-       then srcs."java_tools_javac11_darwin-v8.0.zip"
-       else srcs."java_tools_javac11_linux-v8.0.zip")
-      srcs."coverage_output_generator-v2.1.zip"
+      # `bazel query` wants all of these to be available regardless of platform.
+      srcs."java_tools_javac11_darwin-v10.0.zip"
+      srcs."java_tools_javac11_linux-v10.0.zip"
+      srcs."java_tools_javac11_windows-v10.0.zip"
+      srcs."coverage_output_generator-v2.5.zip"
       srcs.build_bazel_rules_nodejs
-      srcs."android_tools_pkg-0.19.0rc1.tar.gz"
+      srcs."android_tools_pkg-0.19.0rc3.tar.gz"
       srcs."bazel-toolchains-3.1.0.tar.gz"
+      srcs."com_github_grpc_grpc"
+      srcs.upb
       srcs.rules_pkg
       srcs.rules_cc
       srcs.rules_java
@@ -97,7 +100,7 @@ let
     [ bash coreutils findutils gawk gnugrep gnutar gnused gzip which unzip file zip ];
 
   # Java toolchain used for the build and tests
-  javaToolchain = "@bazel_tools//tools/jdk:toolchain_host${buildJdkName}";
+  javaToolchain = "@bazel_tools//tools/jdk:toolchain_${buildJdkName}";
 
   platforms = lib.platforms.linux ++ lib.platforms.darwin;
 
@@ -111,7 +114,7 @@ let
   remote_java_tools = stdenv.mkDerivation {
     name = "remote_java_tools_${system}";
 
-    src = srcDepsSet."java_tools_javac11_${system}-v8.0.zip";
+    src = srcDepsSet."java_tools_javac11_${system}-v10.0.zip";
 
     nativeBuildInputs = [ autoPatchelfHook unzip ];
     buildInputs = [ gcc-unwrapped ];
@@ -131,9 +134,20 @@ let
   bazelRC = writeTextFile {
     name = "bazel-rc";
     text = ''
-      build --override_repository=${remote_java_tools.name}=${remote_java_tools}
-      build --distdir=${distDir}
       startup --server_javabase=${runJdk}
+
+      # Can't use 'common'; https://github.com/bazelbuild/bazel/issues/3054
+      # Most commands inherit from 'build' anyway.
+      build --distdir=${distDir}
+      fetch --distdir=${distDir}
+      query --distdir=${distDir}
+
+      build --override_repository=${remote_java_tools.name}=${remote_java_tools}
+      fetch --override_repository=${remote_java_tools.name}=${remote_java_tools}
+      query --override_repository=${remote_java_tools.name}=${remote_java_tools}
+
+      # Provide a default java toolchain, this will be the same as ${runJdk}
+      build --host_javabase='@local_jdk//:jdk'
 
       # load default location for the system wide configuration
       try-import /etc/bazel.bazelrc
@@ -157,12 +171,18 @@ stdenv.mkDerivation rec {
   sourceRoot = ".";
 
   patches = [
-    ./python-shebang.patch
-
     # On Darwin, the last argument to gcc is coming up as an empty string. i.e: ''
     # This is breaking the build of any C target. This patch removes the last
     # argument if it's found to be an empty string.
     ../trim-last-argument-to-gcc-if-empty.patch
+
+    # On Darwin, using clang 6 to build fails because of a linker error (see #105573),
+    # but using clang 7 fails because libarclite_macosx.a cannot be found when linking
+    # the xcode_locator tool.
+    # This patch removes using the -fobjc-arc compiler option and makes the code
+    # compile without automatic reference counting. Caveat: this leaks memory, but
+    # we accept this fact because xcode_locator is only a short-lived process used during the build.
+    ./no-arc.patch
 
     # --experimental_strict_action_env (which may one day become the default
     # see bazelbuild/bazel#2574) hardcodes the default
@@ -359,6 +379,8 @@ stdenv.mkDerivation rec {
         src/tools/xcode/stdredirect/BUILD \
         tools/osx/BUILD
 
+      substituteInPlace scripts/bootstrap/compile.sh --replace ' -mmacosx-version-min=10.9' ""
+
       # nixpkgs's libSystem cannot use pthread headers directly, must import GCD headers instead
       sed -i -e "/#include <pthread\/spawn.h>/i #include <dispatch/dispatch.h>" src/main/cpp/blaze_util_darwin.cc
 
@@ -419,10 +441,18 @@ stdenv.mkDerivation rec {
 
       # add nix environment vars to .bazelrc
       cat >> .bazelrc <<EOF
+      # Limit the resources Bazel is allowed to use during the build to 1/2 the
+      # available RAM and 3/4 the available CPU cores. This should help avoid
+      # overwhelming the build machine.
+      build --local_ram_resources=HOST_RAM*.5
+      build --local_cpu_resources=HOST_CPUS*.75
+
       build --distdir=${distDir}
       fetch --distdir=${distDir}
       build --copt="$(echo $NIX_CFLAGS_COMPILE | sed -e 's/ /" --copt="/g')"
       build --host_copt="$(echo $NIX_CFLAGS_COMPILE | sed -e 's/ /" --host_copt="/g')"
+      build --linkopt="$(echo $(< ${stdenv.cc}/nix-support/libcxx-ldflags) | sed -e 's/ /" --linkopt="/g')"
+      build --host_linkopt="$(echo $(< ${stdenv.cc}/nix-support/libcxx-ldflags) | sed -e 's/ /" --host_linkopt="/g')"
       build --linkopt="-Wl,$(echo $NIX_LDFLAGS | sed -e 's/ /" --linkopt="-Wl,/g')"
       build --host_linkopt="-Wl,$(echo $NIX_LDFLAGS | sed -e 's/ /" --host_linkopt="-Wl,/g')"
       build --host_javabase='@local_jdk//:jdk'
@@ -432,6 +462,8 @@ stdenv.mkDerivation rec {
       # add the same environment vars to compile.sh
       sed -e "/\$command \\\\$/a --copt=\"$(echo $NIX_CFLAGS_COMPILE | sed -e 's/ /" --copt=\"/g')\" \\\\" \
           -e "/\$command \\\\$/a --host_copt=\"$(echo $NIX_CFLAGS_COMPILE | sed -e 's/ /" --host_copt=\"/g')\" \\\\" \
+          -e "/\$command \\\\$/a --linkopt=\"$(echo $(< ${stdenv.cc}/nix-support/libcxx-ldflags) | sed -e 's/ /" --linkopt=\"/g')\" \\\\" \
+          -e "/\$command \\\\$/a --host_linkopt=\"$(echo $(< ${stdenv.cc}/nix-support/libcxx-ldflags) | sed -e 's/ /" --host_linkopt=\"/g')\" \\\\" \
           -e "/\$command \\\\$/a --linkopt=\"-Wl,$(echo $NIX_LDFLAGS | sed -e 's/ /" --linkopt=\"-Wl,/g')\" \\\\" \
           -e "/\$command \\\\$/a --host_linkopt=\"-Wl,$(echo $NIX_LDFLAGS | sed -e 's/ /" --host_linkopt=\"-Wl,/g')\" \\\\" \
           -e "/\$command \\\\$/a --host_javabase='@local_jdk//:jdk' \\\\" \
@@ -524,7 +556,7 @@ stdenv.mkDerivation rec {
     export TEST_TMPDIR=$(pwd)
 
     hello_test () {
-      $out/bin/bazel test --distdir=${distDir} \
+      $out/bin/bazel test \
         --test_output=errors \
         --java_toolchain='${javaToolchain}' \
         examples/cpp:hello-success_test \

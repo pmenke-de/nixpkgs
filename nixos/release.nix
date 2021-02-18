@@ -79,7 +79,7 @@ let
     in
       tarball //
         { meta = {
-            description = "NixOS system tarball for ${system} - ${stdenv.hostPlatform.platform.name}";
+            description = "NixOS system tarball for ${system} - ${stdenv.hostPlatform.linux-kernel.name}";
             maintainers = map (x: lib.maintainers.${x}) maintainers;
           };
           inherit config;
@@ -105,7 +105,7 @@ let
         modules = makeModules module {};
       };
       build = configEvaled.config.system.build;
-      kernelTarget = configEvaled.pkgs.stdenv.hostPlatform.platform.kernelTarget;
+      kernelTarget = configEvaled.pkgs.stdenv.hostPlatform.linux-kernel.target;
     in
       pkgs.symlinkJoin {
         name = "netboot";
@@ -308,6 +308,11 @@ in rec {
       { services.xserver.enable = true;
         services.xserver.displayManager.gdm.enable = true;
         services.xserver.desktopManager.gnome3.enable = true;
+      });
+
+    pantheon = makeClosure ({ ... }:
+      { services.xserver.enable = true;
+        services.xserver.desktopManager.pantheon.enable = true;
       });
 
     # Linux/Apache/PostgreSQL/PHP stack.

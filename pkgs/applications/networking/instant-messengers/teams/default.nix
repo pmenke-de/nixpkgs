@@ -10,16 +10,16 @@
 , at-spi2-atk
 , coreutils
 , gawk
-, xdg_utils
+, xdg-utils
 , systemd }:
 
 stdenv.mkDerivation rec {
   pname = "teams";
-  version = "1.3.00.16851";
+  version = "1.3.00.30857";
 
   src = fetchurl {
     url = "https://packages.microsoft.com/repos/ms-teams/pool/main/t/teams/teams_${version}_amd64.deb";
-    sha256 = "1mp4xq224nwv2ckb5zd7iv3yvkg3gv6mk9dvx3f60jgain7qr0r3";
+    sha256 = "06r48h1fr2si2g5ng8hsnbcmr70iapnafj21v5bzrzzrigzb2n2h";
   };
 
   nativeBuildInputs = [ dpkg autoPatchelfHook wrapGAppsHook ];
@@ -32,12 +32,12 @@ stdenv.mkDerivation rec {
   ];
 
   runtimeDependencies = [
-    systemd.lib
+    (lib.getLib systemd)
     pulseaudio
   ];
 
   preFixup = ''
-    gappsWrapperArgs+=(--prefix PATH : "${coreutils}/bin:${gawk}/bin:${xdg_utils}/bin")
+    gappsWrapperArgs+=(--prefix PATH : "${coreutils}/bin:${gawk}/bin:${xdg-utils}/bin")
   '';
 
   installPhase = ''
@@ -47,9 +47,13 @@ stdenv.mkDerivation rec {
     mv share $out/share
 
     substituteInPlace $out/share/applications/teams.desktop \
-      --replace /usr/bin/ $out/bin/
+      --replace /usr/bin/ ""
 
     ln -s $out/opt/teams/teams $out/bin/
+
+    # Work-around screen sharing bug
+    # https://docs.microsoft.com/en-us/answers/questions/42095/sharing-screen-not-working-anymore-bug.html
+    rm $out/opt/teams/resources/app.asar.unpacked/node_modules/slimcore/bin/rect-overlay
   '';
 
   dontAutoPatchelf = true;
@@ -74,7 +78,7 @@ stdenv.mkDerivation rec {
     done;
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Microsoft Teams";
     homepage = "https://teams.microsoft.com";
     downloadPage = "https://teams.microsoft.com/downloads";

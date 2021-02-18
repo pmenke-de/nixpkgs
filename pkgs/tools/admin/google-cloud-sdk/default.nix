@@ -21,31 +21,35 @@ let
   sources = name: system: {
     x86_64-darwin = {
       url = "${baseUrl}/${name}-darwin-x86_64.tar.gz";
-      sha256 = "1b9pm0k298w7scsi493a2xlikiqqbb8vwcy9j71421kyvlj4g7yr";
+      sha256 = "sha256-aHFwcynt4xQ0T1J+OTSxgttU9W3VFJAqCwmQSdVg8Fk=";
     };
 
     x86_64-linux = {
       url = "${baseUrl}/${name}-linux-x86_64.tar.gz";
-      sha256 = "1f6kkcwxg419kw58521n4ms68hspx7mj87syj4xzxdwgkwg92ws7";
+      sha256 = "sha256-MfldToK7ZfdWZiZnI1qKI1o/dSiUcysxzUkTYMVZ5u4=";
     };
   }.${system};
 
 in stdenv.mkDerivation rec {
   pname = "google-cloud-sdk";
-  version = "301.0.0";
+  version = "328.0.0";
 
   src = fetchurl (sources "${pname}-${version}" stdenv.hostPlatform.system);
 
-  buildInputs = [ python makeWrapper ];
+  buildInputs = [ python ];
 
-  nativeBuildInputs = [ jq ];
+  nativeBuildInputs = [ jq makeWrapper ];
 
   patches = [
+    # For kubectl configs, don't store the absolute path of the `gcloud` binary as it can be garbage-collected
     ./gcloud-path.patch
+    # Disable checking for updates for the package
     ./gsutil-disable-updates.patch
   ];
 
   installPhase = ''
+    runHook preInstall
+
     mkdir -p $out/google-cloud-sdk
     cp -R * .install $out/google-cloud-sdk/
 
@@ -74,8 +78,8 @@ in stdenv.mkDerivation rec {
     disable_update_check = true" >> $out/google-cloud-sdk/properties
 
     # setup bash completion
-    mkdir -p $out/etc/bash_completion.d
-    mv $out/google-cloud-sdk/completion.bash.inc $out/etc/bash_completion.d/gcloud.inc
+    mkdir -p $out/share/bash-completion/completions
+    mv $out/google-cloud-sdk/completion.bash.inc $out/share/bash-completion/completions/gcloud.inc
 
     # This directory contains compiled mac binaries. We used crcmod from
     # nixpkgs instead.
@@ -91,15 +95,17 @@ in stdenv.mkDerivation rec {
       jq -c . $path > $path.min
       mv $path.min $path
     done
+
+    runHook postInstall
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Tools for the google cloud platform";
     longDescription = "The Google Cloud SDK. This package has the programs: gcloud, gsutil, and bq";
     # This package contains vendored dependencies. All have free licenses.
     license = licenses.free;
     homepage = "https://cloud.google.com/sdk/";
-    maintainers = with maintainers; [ pradyuman stephenmw zimbatm ];
+    maintainers = with maintainers; [ iammrinal0 pradyuman stephenmw zimbatm ];
     platforms = [ "x86_64-linux" "x86_64-darwin" ];
   };
 }
