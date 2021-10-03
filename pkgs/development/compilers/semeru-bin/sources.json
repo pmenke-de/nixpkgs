@@ -1,0 +1,224 @@
+{
+  "openj9": {
+    "linux": {
+      "jdk": {
+        "openjdk11": {
+          "aarch64": {
+            "build": "8",
+            "sha256": "151dca23e1fdb43eaa60631c96895be9aa7bb751e7fdf88ddffa1c32157fb417",
+            "url": "https://github.com/ibmruntimes/semeru11-binaries/releases/download/jdk-11.0.13%2B8_openj9-0.29.0/ibm-semeru-open-jdk_aarch64_linux_11.0.13_8_openj9-0.29.0.tar.gz",
+            "version": "11.0.13"
+          },
+          "packageType": "jdk",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "8",
+            "sha256": "3975e2732cf632ca8f41c237ba7e033fd96bda262b79861f83b4e2ac62c90c3d",
+            "url": "https://github.com/ibmruntimes/semeru11-binaries/releases/download/jdk-11.0.13%2B8_openj9-0.29.0/ibm-semeru-open-jdk_x64_linux_11.0.13_8_openj9-0.29.0.tar.gz",
+            "version": "11.0.13"
+          }
+        },
+        "openjdk16": {
+          "aarch64": {
+            "build": "7",
+            "sha256": "022cda1210331488c3db3d0d1282ea74467397fdabc34cb482cdfe81c45f6a15",
+            "url": "https://github.com/ibmruntimes/semeru16-binaries/releases/download/jdk-16.0.2%2B7_openj9-0.27.0/ibm-semeru-open-jdk_aarch64_linux_16.0.2_7_openj9-0.27.0.tar.gz",
+            "version": "16.0.2"
+          },
+          "packageType": "jdk",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "7",
+            "sha256": "1349eb9a1d9af491a1984d66a80126730357c4a5c4fcbe7112a2c832f6c0886e",
+            "url": "https://github.com/ibmruntimes/semeru16-binaries/releases/download/jdk-16.0.2%2B7_openj9-0.27.0/ibm-semeru-open-jdk_x64_linux_16.0.2_7_openj9-0.27.0.tar.gz",
+            "version": "16.0.2"
+          }
+        },
+        "openjdk17": {
+          "aarch64": {
+            "build": "12",
+            "sha256": "5e0f80052ac4613d2d689904b20ff8b6e2bbd1edd87271db0659a646a24dfeb6",
+            "url": "https://github.com/ibmruntimes/semeru17-binaries/releases/download/jdk-17.0.1%2B12_openj9-0.29.1/ibm-semeru-open-jdk_aarch64_linux_17.0.1_12_openj9-0.29.1.tar.gz",
+            "version": "17.0.1"
+          },
+          "packageType": "jdk",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "12",
+            "sha256": "154f6411742ee1f8cbf004d72e7e71053b9ad4e89090cb930b6f16951e56503e",
+            "url": "https://github.com/ibmruntimes/semeru17-binaries/releases/download/jdk-17.0.1%2B12_openj9-0.29.1/ibm-semeru-open-jdk_x64_linux_17.0.1_12_openj9-0.29.1.tar.gz",
+            "version": "17.0.1"
+          }
+        },
+        "openjdk8": {
+          "aarch64": {
+            "build": "07",
+            "sha256": "055e51b462fac3af198424ab41804959bf769274ebdffef9ac8bf036a9d73b95",
+            "url": "https://github.com/ibmruntimes/semeru8-binaries/releases/download/jdk8u312-b07_openj9-0.29.0/ibm-semeru-open-jdk_aarch64_linux_8u312b07_openj9-0.29.0.tar.gz",
+            "version": "8.0.312"
+          },
+          "packageType": "jdk",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "07",
+            "sha256": "c7306112201b45cc8b96e6d6fb3f6de727ddbbb51022cbd9cff98b661e37a510",
+            "url": "https://github.com/ibmruntimes/semeru8-binaries/releases/download/jdk8u312-b07_openj9-0.29.0/ibm-semeru-open-jdk_x64_linux_8u312b07_openj9-0.29.0.tar.gz",
+            "version": "8.0.312"
+          }
+        }
+      },
+      "jre": {
+        "openjdk11": {
+          "aarch64": {
+            "build": "8",
+            "sha256": "b56f464c2f46aa779897f076edb4c3c37d0280784bcc3b7a46228a32a9e62470",
+            "url": "https://github.com/ibmruntimes/semeru11-binaries/releases/download/jdk-11.0.13%2B8_openj9-0.29.0/ibm-semeru-open-jre_aarch64_linux_11.0.13_8_openj9-0.29.0.tar.gz",
+            "version": "11.0.13"
+          },
+          "packageType": "jre",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "8",
+            "sha256": "78eb54af15fac39eb2d254f51f0302aa213d3ad838f17766a9d081ca783edff4",
+            "url": "https://github.com/ibmruntimes/semeru11-binaries/releases/download/jdk-11.0.13%2B8_openj9-0.29.0/ibm-semeru-open-jre_x64_linux_11.0.13_8_openj9-0.29.0.tar.gz",
+            "version": "11.0.13"
+          }
+        },
+        "openjdk16": {
+          "aarch64": {
+            "build": "7",
+            "sha256": "575dc3827077fc661fd1103effaa13ccd0f1606d01a33643956ed2eb1ece9763",
+            "url": "https://github.com/ibmruntimes/semeru16-binaries/releases/download/jdk-16.0.2%2B7_openj9-0.27.0/ibm-semeru-open-jre_aarch64_linux_16.0.2_7_openj9-0.27.0.tar.gz",
+            "version": "16.0.2"
+          },
+          "packageType": "jre",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "7",
+            "sha256": "b077cd0b35d3ed1927c22e5b498264ecff67297992809056187b42662edfc536",
+            "url": "https://github.com/ibmruntimes/semeru16-binaries/releases/download/jdk-16.0.2%2B7_openj9-0.27.0/ibm-semeru-open-jre_x64_linux_16.0.2_7_openj9-0.27.0.tar.gz",
+            "version": "16.0.2"
+          }
+        },
+        "openjdk17": {
+          "aarch64": {
+            "build": "12",
+            "sha256": "9763bdceaaa712b3d432b0b5961cef2140cd986669f887d55463da07748537b2",
+            "url": "https://github.com/ibmruntimes/semeru17-binaries/releases/download/jdk-17.0.1%2B12_openj9-0.29.1/ibm-semeru-open-jre_aarch64_linux_17.0.1_12_openj9-0.29.1.tar.gz",
+            "version": "17.0.1"
+          },
+          "packageType": "jre",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "12",
+            "sha256": "69f1f7a6b3d4a701f3c25ac338768d8a414594fa2c50ddfbd8c014e8a5e790db",
+            "url": "https://github.com/ibmruntimes/semeru17-binaries/releases/download/jdk-17.0.1%2B12_openj9-0.29.1/ibm-semeru-open-jre_x64_linux_17.0.1_12_openj9-0.29.1.tar.gz",
+            "version": "17.0.1"
+          }
+        },
+        "openjdk8": {
+          "aarch64": {
+            "build": "07",
+            "sha256": "1ecfa7bb83136d139e137dad9fcc5f02bd931f789d12167cb63f44102b1cad62",
+            "url": "https://github.com/ibmruntimes/semeru8-binaries/releases/download/jdk8u312-b07_openj9-0.29.0/ibm-semeru-open-jre_aarch64_linux_8u312b07_openj9-0.29.0.tar.gz",
+            "version": "8.0.312"
+          },
+          "packageType": "jre",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "07",
+            "sha256": "0bdd811bb21b4664ff955c95ce462aaa3ace7669b56a3db79cf22ef0b9dbd1b4",
+            "url": "https://github.com/ibmruntimes/semeru8-binaries/releases/download/jdk8u312-b07_openj9-0.29.0/ibm-semeru-open-jre_x64_linux_8u312b07_openj9-0.29.0.tar.gz",
+            "version": "8.0.312"
+          }
+        }
+      }
+    },
+    "mac": {
+      "jdk": {
+        "openjdk11": {
+          "packageType": "jdk",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "8",
+            "sha256": "0f0a117666ead0b28e3b44a4f2cc56645f25a28ce67bd51b671c118ea6842774",
+            "url": "https://github.com/ibmruntimes/semeru11-binaries/releases/download/jdk-11.0.13%2B8_openj9-0.29.0/ibm-semeru-open-jdk_x64_mac_11.0.13_8_openj9-0.29.0.tar.gz",
+            "version": "11.0.13"
+          }
+        },
+        "openjdk16": {
+          "packageType": "jdk",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "7",
+            "sha256": "89e807261145243a358a2a626f64340944c03622f34eaa35429053e2085d7aef",
+            "url": "https://github.com/ibmruntimes/semeru16-binaries/releases/download/jdk-16.0.2%2B7_openj9-0.27.0/ibm-semeru-open-jdk_x64_mac_16.0.2_7_openj9-0.27.0.tar.gz",
+            "version": "16.0.2"
+          }
+        },
+        "openjdk17": {
+          "packageType": "jdk",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "12",
+            "sha256": "5a3104d1bd5d382dbea3c3b232da251fc2f58484136234130bc14f3b020114bf",
+            "url": "https://github.com/ibmruntimes/semeru17-binaries/releases/download/jdk-17.0.1%2B12_openj9-0.29.1/ibm-semeru-open-jdk_x64_mac_17.0.1_12_openj9-0.29.1.tar.gz",
+            "version": "17.0.1"
+          }
+        },
+        "openjdk8": {
+          "packageType": "jdk",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "07",
+            "sha256": "71c7edbd7267aa1fd5c877d7454139f0f601d2364c8895f922e59c238dd66119",
+            "url": "https://github.com/ibmruntimes/semeru8-binaries/releases/download/jdk8u312-b07_openj9-0.29.0/ibm-semeru-open-jdk_x64_mac_8u312b07_openj9-0.29.0.tar.gz",
+            "version": "8.0.312"
+          }
+        }
+      },
+      "jre": {
+        "openjdk11": {
+          "packageType": "jre",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "8",
+            "sha256": "4b75ff4c072875384bb753defef97251b0aaeff7828dc76e49523038fc3b8288",
+            "url": "https://github.com/ibmruntimes/semeru11-binaries/releases/download/jdk-11.0.13%2B8_openj9-0.29.0/ibm-semeru-open-jre_x64_mac_11.0.13_8_openj9-0.29.0.tar.gz",
+            "version": "11.0.13"
+          }
+        },
+        "openjdk16": {
+          "packageType": "jre",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "7",
+            "sha256": "2cb8007de405d0c8f160549309bcfc1adc82e304eb372e86ce0e0a214239438f",
+            "url": "https://github.com/ibmruntimes/semeru16-binaries/releases/download/jdk-16.0.2%2B7_openj9-0.27.0/ibm-semeru-open-jre_x64_mac_16.0.2_7_openj9-0.27.0.tar.gz",
+            "version": "16.0.2"
+          }
+        },
+        "openjdk17": {
+          "packageType": "jre",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "12",
+            "sha256": "5d0e4ebe1c1224cc7e183b7a5c67270b5a809a174744d9532f8a566412209f71",
+            "url": "https://github.com/ibmruntimes/semeru17-binaries/releases/download/jdk-17.0.1%2B12_openj9-0.29.1/ibm-semeru-open-jre_x64_mac_17.0.1_12_openj9-0.29.1.tar.gz",
+            "version": "17.0.1"
+          }
+        },
+        "openjdk8": {
+          "packageType": "jre",
+          "vmType": "openj9",
+          "x86_64": {
+            "build": "07",
+            "sha256": "9c4e76abb56f07d92938a889b5063382b36e89ae2ffe82f3a44f77b7112cf623",
+            "url": "https://github.com/ibmruntimes/semeru8-binaries/releases/download/jdk8u312-b07_openj9-0.29.0/ibm-semeru-open-jre_x64_mac_8u312b07_openj9-0.29.0.tar.gz",
+            "version": "8.0.312"
+          }
+        }
+      }
+    }
+  }
+}
