@@ -14,7 +14,7 @@ let
       else throw "Parallels Tools for Linux only supports {aarch64,x86_64,i686}-linux targets";
 in
 stdenv.mkDerivation rec {
-  version = "${prl_major}.1.1-51537";
+  version = "${prl_major}.1.2-51548";
   prl_major = "17";
   pname = "prl-tools";
 
@@ -22,7 +22,7 @@ stdenv.mkDerivation rec {
   # => ${dmg}/Parallels\ Desktop.app/Contents/Resources/Tools/prl-tools-lin.iso
   src = fetchurl {
     url =  "https://download.parallels.com/desktop/v${prl_major}/${version}/ParallelsDesktop-${version}.dmg";
-    sha256 = "1ab5jwbg3jgvfwx8kwxwhhrsdp9wz4g9q7fg4z0hhd8v9pgy4yxx";
+    sha256 = "1b5j0ybzxszq1f27j7w5asgif6l1lmzwblbzidb324lsz0af69rv";
   };
 
   hardeningDisable = [ "pic" "format" ];
