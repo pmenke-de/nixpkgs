@@ -43,7 +43,11 @@ stdenv.mkDerivation rec {
     export sourceRoot=prl-tools-build
     7z x "Parallels Desktop.app/Contents/Resources/Tools/prl-tools-lin${if aarch64 then "-arm" else ""}.iso" -o$sourceRoot
     if test -z "$libsOnly"; then
-      ( cd $sourceRoot/kmods; tar -xaf prl_mod.tar.gz )
+      (
+        cd $sourceRoot/kmods
+        tar -xaf prl_mod.tar.gz
+        sed -i -e 's/PDE_DATA/pde_data/' prl_tg/Toolgate/Guest/Linux/prl_tg/prltg.c
+      )
     fi
     # TODO
   '';
